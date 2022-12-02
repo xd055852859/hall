@@ -1,0 +1,33 @@
+{
+  "name": "hall",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "scp": "scp -r dist/* root@132.232.47.47:/home/work/websites/citang.qingtime.cn/",
+    "sync": "rsync -r dist/* root@132.232.47.47:/home/work/websites/citang.qingtime.cn/",
+    "deploy": "npm run build && npm run sync"
+  },
+  "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
+    "@types/node": "^18.11.9",
+    "axios": "^1.2.0",
+    "element-plus": "^2.2.25",
+    "pinia": "^2.0.27",
+    "qiniu-js": "^3.4.1",
+    "sass": "^1.56.1",
+    "sass-loader": "^13.2.0",
+    "unplugin-auto-import": "^0.11.5",
+    "vue": "^3.2.41",
+    "vue-router": "^4.1.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^3.2.0",
+    "typescript": "^4.6.4",
+    "vite": "^3.2.3",
+    "vue-tsc": "^1.0.9"
+  }
+}
