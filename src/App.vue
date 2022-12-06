@@ -10,14 +10,6 @@
   </audio>
 </template>
 <style scoped lang="scss">
-*::-webkit-scrollbar {
-  width: 4px;
-  height: 2px;
-}
 
-*::-webkit-scrollbar-thumb {
-  background: var(--diary-font-color);
-  border-radius: 100px;
-}
 </style>
 <style></style>

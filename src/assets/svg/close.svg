@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="58px" height="58px" viewBox="0 0 58 58" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>关闭</title>
+    <defs>
+        <circle id="path-1" cx="15" cy="15" r="15"></circle>
+        <filter x="-75.0%" y="-58.3%" width="250.0%" height="250.0%" filterUnits="objectBoundingBox" id="filter-2">
+            <feMorphology radius="3.5" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="5" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4.5" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.0583205857 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="华夏祠堂-图库-检索" transform="translate(-1831.000000, -55.000000)">
+            <g id="编组-5" transform="translate(1420.000000, 0.000000)">
+                <g id="关闭" transform="translate(425.000000, 64.000000)">
+                    <g id="椭圆形">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                        <circle stroke="#84B840" stroke-width="2" fill="#FFFFFF" fill-rule="evenodd" cx="15" cy="15" r="16"></circle>
+                    </g>
+                    <path d="M23.0678075,21.7920021 L16.2762755,14.9983638 L23.0678075,8.20799791 C23.244551,8.03128478 23.3329228,7.8022122 23.3329228,7.56986713 C23.3329228,7.34079455 23.244551,7.1084495 23.0678075,6.93173637 C22.7143206,6.5783101 22.1448138,6.5783101 21.7913268,6.93173637 L14.9997947,13.7253747 L8.20826263,6.93173637 C7.85477566,6.5783101 7.28526887,6.5783101 6.93178189,6.93173637 C6.57829492,7.28516264 6.57829492,7.85457164 6.93178189,8.20799791 L13.726587,14.9983638 L6.93178189,21.7920021 C6.57829492,22.1454284 6.57829492,22.7148374 6.93178189,23.0682636 C7.28526887,23.4216899 7.85477566,23.4216899 8.20826263,23.0682636 L14.9997947,16.2746253 L21.7945999,23.0649912 C21.9713433,23.2417043 22.2004553,23.3300609 22.4328402,23.3300609 C22.6619521,23.3300609 22.8943371,23.2417043 23.0710806,23.0649912 C23.4212945,22.7148374 23.4212945,22.1421559 23.0678075,21.7920021 Z" id="路径" fill="#87B940"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

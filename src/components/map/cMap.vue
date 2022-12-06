@@ -1,108 +1,67 @@
 <script setup lang="ts">
 import AMapLoader from "@amap/amap-jsapi-loader";
-import { cMapData } from "./cMap";
+import { commonMapData } from "./cMap";
+import buildPng from "@/assets/img/build.png";
+import pointPng from "@/assets/img/point.png";
+import { Hall } from "@/interface/Hall";
 const props = defineProps<{
   mapId: string;
   width: string;
   height: string;
-  pointArray?: any;
-  pointCode?: any;
-  type?: string;
+  cMapData: Hall[];
+  changeState: boolean;
 }>();
 const emits = defineEmits<{
-  (e: "setName", name: string, address: any): void;
-  (e: "searchEvent", lng: number, lat: number): void;
+  (e: "setProvince", name: string): void;
+  (e: "setCity", name: string): void;
 }>();
 const amap = shallowRef<any>(null);
 const amapData = shallowRef<any>(null);
 const marker = shallowRef<any>(null);
 const polygon = shallowRef<any>(null);
 const cluster = shallowRef<any>(null);
+const clusterList = shallowRef<any>([]);
 const LabelsData = ref<any>([]);
+const randomIndex = ref<number>(0);
+const timer1 = ref<any>(null);
+const timer2 = ref<any>(null);
+const countIndex = ref<number>(0);
 const count = ref<number>(0);
 onMounted(() => {
-  count.value = cMapData.points.length;
-  formatData();
-  initMap();
+  formatData(props.cMapData);
+  initMap(props.cMapData);
 });
-// onUnmounted(() => {
-//   if (amap.value) {
-//     amap.value.clearEvents("click");
-//     if (marker.value) {
-//       amap.value.remove(marker.value);
-//       marker.value = null;
-//     }
-//     if (cluster.value) {
-//       cluster.value.setMap(null);
-//       cluster.value = null;
-//     }
-//     if (polygon.value) {
-//       amap.value.remove(polygon.value);
-//       polygon.value = null;
-//     }
-//     amapData.value = null;
-//     amap.value.destroy();
-//     amap.value = null;
-//     console.log(polygon.value);
-//   }
-// });
-// const initPath = () => {
-//   if (polygon.value) {
-//     amap.value.remove(polygon.value);
-//   }
-//   let adCode = domain.value?.regionCode.substring(0, 6);
-//   amap.value.plugin("AMap.DistrictSearch", function () {
-//     new amapData.value.DistrictSearch({
-//       extensions: "all",
-//       subdistrict: 0,
-//     }).search(adCode, function (status, result) {
-//       // 外多边形坐标数组和内多边形坐标数组
-//       // const canvas = document.createElement("canvas");
-//       // const ctx: any = canvas.getContext("2d");
-//       // // 将 canvas 宽高设置为地图实例的宽高
-//       // canvas.width = amap.value.getSize().width;
-//       // canvas.height = amap.value.getSize().height;
-//       // const image = new Image();
-//       // image.src = homePng;
-//       // image.onload = function (event) {
-//       //   ctx.drawImage(
-//       //     image,
-//       //     0,
-//       //     0,
-//       //     amap.value.getSize().width,
-//       //     amap.value.getSize().height
-//       //   );
-//       //   // 创建一个自定义图层
-//       //   var customLayer = new amapData.value.CustomLayer(canvas, {
-//       //     zIndex: 12,
-//       //   });
-//       var outer = [
-//         new amapData.value.LngLat(-360, 90, true),
-//         new amapData.value.LngLat(-360, -90, true),
-//         new amapData.value.LngLat(360, -90, true),
-//         new amapData.value.LngLat(360, 90, true),
-//       ];
-//       var holes = result.districtList[0].boundaries;
-//       var pathArray = [outer];
-//       pathArray.push.apply(pathArray, holes);
-//       polygon.value = new amapData.value.Polygon({
-//         pathL: pathArray,
-//         strokeColor: props.type === "screen" ? "#0a071a" : "#a0cfff", //城市边界颜色
-//         strokeWeight: 2,
-//         fillColor: props.type === "screen" ? "#0a071a" : "#a0cfff", // 遮罩背景色黑色
-//         fillOpacity: 1,
-//       });
-//       polygon.value.setPath(pathArray);
-//       // amap.value.add(customLayer);
-//       amap.value.add(polygon.value);
-//       // };
-//     });
-//   });
-// };
-// let SOC = "CHN";
-// let colors = {};
-const formatData = () => {
-  for (let i = 0; i < cMapData.districts.length; i++) {
+onUnmounted(() => {
+  if (amap.value) {
+    // amap.value.clearEvents("click");
+    if (marker.value) {
+      amap.value.remove(marker.value);
+      marker.value = null;
+    }
+    if (cluster.value) {
+      cluster.value.setMap(null);
+      cluster.value = null;
+    }
+    if (polygon.value) {
+      amap.value.remove(polygon.value);
+      polygon.value = null;
+    }
+    amapData.value = null;
+    amap.value.destroy();
+    amap.value = null;
+    if (timer1.value) {
+      clearInterval(timer1.value);
+      timer1.value = null;
+    }
+    if (timer2.value) {
+      clearTimeout(timer2.value);
+      timer2.value = null;
+    }
+  }
+});
+
+const formatData = (newData) => {
+  for (let i = 0; i < commonMapData.districts.length; i++) {
     let config: any = {
       name: "",
       position: [116.12, 39.11],
@@ -123,76 +82,26 @@ const formatData = () => {
         },
       },
     };
-    let district = cMapData.districts[i];
+    let district = commonMapData.districts[i];
     let name = district.name;
     config.text.content = name;
     config.position = district.center.split(",");
-    if (cMapData.directions[name]) {
-      config.text.direction = cMapData.directions[name];
+    if (commonMapData.directions[name]) {
+      config.text.direction = commonMapData.directions[name];
     }
     LabelsData.value.push(config);
   }
 };
 
-// const getColorByDGP = (adcode) => {
-//   if (!colors[adcode]) {
-//     var gdp = cMapData.GDPSpeed[adcode];
-//     if (!gdp) {
-//       colors[adcode] = "rgb(227,227,227)";
-//     } else {
-//       var rg = 255 - Math.floor(((gdp - 5) / 5) * 255);
-//       colors[adcode] = "rgb(" + rg + "," + rg + ",255)";
-//     }
-//   }
-//   return colors[adcode];
-// };
-
-const initMap = () => {
+const initMap = (newData) => {
   AMapLoader.load({
     key: "70beeffb8fc9537f6d450fd3747b70c9", // 申请好的Web端开发者Key，首次调用 load 时必填
     version: "1.4.15", // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
     plugins: ["AMap.Geocoder", "AMap.DistrictSearch", "AMap.MarkerClusterer"], // 需要使用的的插件列表，如比例尺'AMap.Scale'等
   })
     .then((AMap) => {
-      // var disCountry = new AMap.DistrictLayer.Country({
-      //   zIndex: 10,
-      //   SOC: "CHN",
-      //   depth: 2,
-      //   styles: {
-      //     "nation-stroke": "white",
-      //     "coastline-stroke": "white",
-      //     "province-stroke": "rgba(0,0,0,0.3)",
-      //     "city-stroke": "rgba(0,0,0,0.03)", //中国特有字段
-      //     // "city-stroke": "#333",
-      //     // fill: "#fff",
-      //     // function (props) {
-      //     //   //中国特有字段
-      //     //   // return getColorByDGP(props.adcode_pro);
-      //     //   return getColorByDGP(props.adcode_pro);
-      //     // },
-      //   },
-      // });
-      // 绘制世界地图国家轮廓
-      // var disWorld = new AMap.DistrictLayer.World({
-      //   zIndex: 10,
-      //   styles: {
-      //     // 颜色格式: #RRGGBB、rgba()、rgb()、[r, g, b, a]
-      //     // 国境线
-      //     //'nation-stroke': nationStroke,
-      //     // 海岸线
-      //     //'coastline-stroke': '',
-      //     // 填充
-      //     fill: function (props) {
-      //       if (props.SOC == "CHN") {
-      //         return "rgba(255,255,25)";
-      //       } else {
-      //         return "white";
-      //       }
-      //     },
-      //   },
-      // });
       amap.value = new AMap.Map(props.mapId, {
-        center: [118, 38],
+        center: [92, 38],
         showIndoorMap: false,
         zoom: 4.5,
         // isHotspot: false,
@@ -217,8 +126,12 @@ const initMap = () => {
         }
         amap.value.add(layer);
         amapData.value = AMap;
-        setCluster(cMapData.points);
-
+        //5,8,10
+        setCluster(newData);
+        amap.value.setFitView();
+        amap.value.panTo([94, 39]);
+        amap.value.setZoom(amap.value.getZoom() + 0.6);
+        amap.value.on("zoomchange", mapZoom);
         // amap.value.AmbientLight = new AMap.Lights.AmbientLight([1, 1, 1], 0.5);
         // // 设置平行光源
         // amap.value.DirectionLight = new AMap.Lights.DirectionLight(
@@ -227,41 +140,39 @@ const initMap = () => {
         //   1
         // );
 
-        var object3Dlayer = new AMap.Object3DLayer({});
-        amap.value.add(object3Dlayer);
+        // var object3Dlayer = new AMap.Object3DLayer({});
+        // amap.value.add(object3Dlayer);
 
-        var opts = {
-          subdistrict: 0,
-          extensions: "all",
-          level: "country",
-        };
+        // var opts = {
+        //   subdistrict: 0,
+        //   extensions: "all",
+        //   level: "country",
+        // };
 
-        //利用行政区查询获取边界
-        var district = new AMap.DistrictSearch(opts);
-        district.search("中国", function (status, result) {
-          console.log(result);
-          var bounds = result.districtList[0].boundaries;
-          var height = 1400000;
-          var color = "rgba(0,136,255,0.6)"; //rgba
-          var wall = new AMap.Object3D.Wall({
-            path: bounds,
-            height: height,
-            color: color,
-          });
-          wall.backOrFront = "both";
-          wall.transparent = true;
-          object3Dlayer.add(wall);
-          // var prism = new AMap.Object3D.Prism({
-          //   path: bounds,
-          //   height: height,
-          //   color: color,
-          // });
-          // prism.transparent = true;
-          // object3Dlayer.add(prism);
-        });
+        // //利用行政区查询获取边界
+        // var district = new AMap.DistrictSearch(opts);
+        // district.search("中国", function (status, result) {
+        //   console.log(result);
+        //   var bounds = result.districtList[0].boundaries;
+        //   var height = 1400000;
+        //   var color = "rgba(0,136,255,0.6)"; //rgba
+        //   var wall = new AMap.Object3D.Wall({
+        //     path: bounds,
+        //     height: height,
+        //     color: color,
+        //   });
+        //   wall.backOrFront = "both";
+        //   wall.transparent = true;
+        //   object3Dlayer.add(wall);
+        //   // var prism = new AMap.Object3D.Prism({
+        //   //   path: bounds,
+        //   //   height: height,
+        //   //   color: color,
+        //   // });
+        //   // prism.transparent = true;
+        //   // object3Dlayer.add(prism);
+        // });
       });
-      // ,
-      // console.log(map.value);
     })
     .catch((e) => {
       console.log(e);
@@ -273,66 +184,63 @@ const setCluster = (pointArray) => {
   }
   let markers: any = [];
   for (var i = 0; i < pointArray.length; i += 1) {
+    let lng = parseFloat((pointArray[i].lng + "").replace(",", ""));
+    let lat = parseFloat((pointArray[i].lat + "").replace(",", ""));
     markers.push(
       new amapData.value.Marker({
-        position: pointArray[i]["lnglat"],
-        content:
-          '<div style="background-color: hsla(180, 100%, 50%, 0.7); height: 24px; width: 24px; border: 1px solid hsl(180, 100%, 40%); border-radius: 12px; box-shadow: hsl(180, 100%, 50%) 0px 0px 1px;"></div>',
-        offset: new amapData.value.Pixel(-15, -15),
+        position: [lng, lat],
+        content: `<div class="clusterMarker">
+           
+            <img src="${buildPng}" class="build"/>
+        </div>`,
+        // offset: new amapData.value.Pixel(-15, -15),
+        extData: {
+          ...pointArray[i],
+        },
       })
     );
   }
+  //  <div class="point-box"  style="background-image:url(${pointPng})">
+  // <div class="point">1</div>
+  //         </div>
   amap.value.plugin("AMap.MarkerClusterer", function () {
-    console.log(amapData.value, amap.value);
     cluster.value = new amapData.value.MarkerClusterer(amap.value, markers, {
       renderClusterMarker: renderClusterMarker, // 自定义聚合点样式
-      // renderMarker: renderMarker, // 自定义非聚合点样式
-      gridSize: 60,
+      zoomOnClick: false,
     });
-    // cluster.value.on("click", clickCluster);
+    //setStyles(styles:Array)
+    cluster.value.on("click", clickCluster);
+    if (!props.changeState) {
+      timer1.value = setInterval(() => {
+        if (cluster.value) {
+          count.value = cluster.value.getClustersCount();
+        } else {
+          count.value = 30;
+        }
+        randomIndex.value = Math.floor(Math.random() * count.value);
+      }, 3000);
+    }
   });
 };
 const renderClusterMarker = (context) => {
-  var factor = Math.pow(context.count / count.value, 1 / 18);
-  var div = document.createElement("div");
-  var Hue = 180 - factor * 180;
-  var bgColor = "hsla(" + Hue + ",100%,50%,0.7)";
-  var fontColor = "hsla(" + Hue + ",100%,20%,1)";
-  var borderColor = "hsla(" + Hue + ",100%,40%,1)";
-  var shadowColor = "hsla(" + Hue + ",100%,50%,1)";
-  div.style.backgroundColor = bgColor;
-  var size = Math.round(30 + Math.pow(context.count / count.value, 1 / 5) * 20);
-  div.style.width = div.style.height = size + "px";
-  div.style.border = "solid 1px " + borderColor;
-  div.style.borderRadius = size / 2 + "px";
-  div.style.boxShadow = "0 0 1px " + shadowColor;
-  div.innerHTML = context.count;
-  div.style.lineHeight = size + "px";
-  div.style.color = fontColor;
-  div.style.fontSize = "14px";
-  div.style.textAlign = "center";
-  context.marker.setOffset(new amapData.value.Pixel(-size / 2, -size / 2));
-  context.marker.setContent(div);
+  context.marker.setContent(
+    `<div class="clusterMarker">
+        <div class="point-box" style="background-image:url(${pointPng})">
+          <div class="point">${context.count}</div>
+        </div>
+        <img src="${buildPng}" class="build"/>
+     </div>`
+  );
 };
-const renderMarker = (context) => {
-  var content =
-    '<div style="background-color: hsla(180, 100%, 50%, 0.3); height: 18px; width: 18px; border: 1px solid hsl(180, 100%, 40%); border-radius: 12px; box-shadow: hsl(180, 100%, 50%) 0px 0px 3px;"></div>';
-  var offset = new amapData.value.Pixel(-9, -9);
-  context.marker.setContent(content);
-  context.marker.setOffset(offset);
+const clickCluster = (obj) => {
+  console.log(obj.markers[0]?.w?.extData?.province);
+  if (obj.markers[0]?.w?.extData?.province) {
+    emits("setProvince", obj.markers[0].w.extData.province);
+  }
 };
-// const clickCluster = (e) => {
-//   // e.stopPropagation();
-//   console.log(e);
-//   console.log(parseInt(amap.value.getZoom()));
-//   console.log(e.lnglat.lng, e.lnglat.lat);
-//   if (e.clusterData.length === 1) {
-//     console.log(e.clusterData);
-//   } else {
-//     amap.value.setZoom(amap.value.getZoom() + 1);
-//     amap.value.setCenter([e.lnglat.lng, e.lnglat.lat]);
-//   }
-// };
+const mapZoom = () => {
+  console.log(amap.value.getZoom());
+};
 // const clearMap = (e) => {
 //   amap.value.remove(marker.value);
 // };
@@ -347,17 +255,55 @@ const renderMarker = (context) => {
 //     }
 //   }
 // );
-// watch(
-//   () => props.pointArray,
-//   (newVal) => {
-//     if (newVal.length > 0) {
-//       if (cluster.value) {
-//         cluster.value.setMap(null);
-//       }
-//       initMap();
-//     }
-//   }
-// );
+watch(
+  () => props.cMapData,
+  (newVal) => {
+    if (cluster.value) {
+      cluster.value.setMap(null);
+    }
+    if (newVal.length > 0) {
+      setCluster(newVal);
+      amap.value.setFitView();
+    }
+  }
+);
+watch(count, (newCount) => {
+  for (let index = 0; index < newCount; index++) {
+    if (document.getElementsByClassName("point-box")[index]?.id) {
+      document.getElementsByClassName("point-box")[index].id = "point" + index;
+    }
+  }
+});
+watch(
+  () => props.changeState,
+  (newState) => {
+    console.log(newState);
+    if (newState) {
+      console.log(timer1.value);
+      console.log(timer2.value);
+      if (timer1.value) {
+        clearInterval(timer1.value);
+        timer1.value = null;
+      }
+      if (timer2.value) {
+        clearTimeout(timer2.value);
+        timer2.value = null;
+      }
+    }
+  }
+);
+watch(randomIndex, (newIndex) => {
+  if (document.getElementById("point" + newIndex)) {
+    document.getElementById("point" + newIndex)?.classList.add("item-move");
+    if (!props.changeState) {
+      timer2.value = setTimeout(() => {
+        document
+          .getElementById("point" + newIndex)
+          ?.classList.remove("item-move");
+      }, 2500);
+    }
+  }
+});
 // defineExpose({
 //   setCluster,
 // });
@@ -376,5 +322,64 @@ const renderMarker = (context) => {
   .amap-layer {
     width: calc(100% + 1px) !important;
   }
+}
+.clusterMarker {
+  width: 78px;
+  height: 65px;
+  position: relative;
+  z-index: 1;
+  .point-box {
+    width: 47px;
+    height: 65px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    z-index: 3;
+    background-size: 100% 100%;
+    transform: scale(1);
+    .point {
+      width: 34px;
+      height: 34px;
+      background-color: #fff;
+      color: #7dc0cc;
+      border-radius: 50%;
+      margin-top: 6.6px;
+      margin-left: 6.6px;
+      text-align: center;
+      font-size: 20px;
+      line-height: 34px;
+      font-weight: 900;
+    }
+  }
+
+  .build {
+    width: 54px;
+    height: 38px;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    z-index: 2;
+  }
+}
+.item-move {
+  animation: move 2s;
+  animation-fill-mode: forwards;
+}
+@keyframes move {
+  0% {
+    bottom: 0px;
+    transform: scale(1);
+  }
+  50% {
+    bottom: 10px;
+    transform: scale(1.2);
+  }
+  100% {
+    bottom: 0px;
+    transform: scale(1);
+  }
+}
+.amap-logo {
+  display: none !important;
 }
 </style>

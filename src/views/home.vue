@@ -7,13 +7,14 @@ import homeButton3Svg from "@/assets/svg/homeButton3.svg";
 import homeText1Svg from "@/assets/svg/homeText1.svg";
 import homeText2Svg from "@/assets/svg/homeText2.svg";
 import homeText3Svg from "@/assets/svg/homeText3.svg";
-import bg1Png from "@/assets/img/bg1.png";
-import bg2Png from "@/assets/img/bg2.png";
-import bg3Png from "@/assets/img/bg3.png";
+import homeLogoSvg from "@/assets/svg/homeLogo.svg";
+import bg1Jpg from "@/assets/img/bg1.jpg";
+import bg2Jpg from "@/assets/img/bg2.jpg";
+import bg3Jpg from "@/assets/img/bg3.jpg";
 const imgRef = ref<any>(null);
 const timer = ref<any>(null);
 const animationState = ref<boolean>(false);
-const imgList = [bg1Png, bg2Png, bg3Png];
+const imgList = [bg1Jpg, bg2Jpg, bg3Jpg];
 onMounted(() => {
   timer.value = setTimeout(() => {
     animationState.value = true;
@@ -43,7 +44,11 @@ onUnmounted(() => {
         />
         <img :src="homeButton1Svg" alt="" class="home-button-img" />
       </div>
-      <div class="home-button" :style="{ left: `calc(50vw - 12vh` }">
+      <div
+        class="home-button"
+        :style="{ left: `calc(50vw - 12vh` }"
+        @click="$router.push('/pano')"
+      >
         <img
           :src="homeText2Svg"
           alt=""
@@ -52,7 +57,11 @@ onUnmounted(() => {
         />
         <img :src="homeButton2Svg" alt="" class="home-button-img" />
       </div>
-      <div class="home-button" :style="{ right: '8vw' }">
+      <div
+        class="home-button"
+        :style="{ right: '8vw' }"
+        @click="$router.push('/story')"
+      >
         <img
           :src="homeText3Svg"
           alt=""
@@ -62,7 +71,10 @@ onUnmounted(() => {
         <img :src="homeButton3Svg" alt="" class="home-button-img" />
       </div>
     </div>
-
+    <div class="home-bottom">
+      主办 <img style="margin: 0px 10px" :src="homeLogoSvg" alt="" /> ©2022
+      时光科技 提供技术支持
+    </div>
     <div class="home-bg">
       <el-carousel height="83vh" :interval="5000" :pause-on-hover="false">
         <el-carousel-item v-for="item in imgList" :key="item">
@@ -75,9 +87,8 @@ onUnmounted(() => {
         <img :src="homeTitleSvg" alt="" class="home-text-img" />
         <div>
           <div>祠堂，是维系海外乡亲与本土血缘关系，</div>
-          <div>
-            同时也是给乡亲以及所有后代子孙了解祠堂文化，了解当地发展史的一个重要载体。
-          </div>
+          <div>同时也是给乡亲以及所有后代子孙了解祠堂文化，</div>
+          <div>了解当地发展史的一个重要载体。</div>
           <div>祠堂，一个民俗博物馆，一部家族变迁史。</div>
         </div>
       </div>
@@ -105,18 +116,18 @@ onUnmounted(() => {
       }
     }
     .home-text {
-      top: 16vh;
-      left: 6vw;
+      width: 608px;
       position: absolute;
+      top: 20vh;
+      left: 6vw;
       z-index: 2;
-      width: 800px;
-      font-size: 14px;
-      font-family: FangSong, STSong !important;
+      font-size: 16px;
       color: #ffffff;
-      line-height: 28px;
+      line-height: 25px;
       .home-text-img {
-        width: 28vw;
-        margin-bottom: 2vh;
+        width: 608px;
+        height: 137px;
+        margin-bottom: 20px;
       }
     }
   }
@@ -126,7 +137,6 @@ onUnmounted(() => {
     position: fixed;
     left: 0px;
     bottom: 0px;
-    position: absolute;
     z-index: 10;
     overflow: hidden;
     .home-button {
@@ -145,6 +155,19 @@ onUnmounted(() => {
         z-index: 3;
       }
     }
+  }
+  .home-bottom {
+    position: fixed;
+    left: 0px;
+    bottom: 0px;
+    z-index: 9;
+    width: 100%;
+    font-size: 14px;
+    font-family: PingFangSC, PingFangSC-Regular;
+    font-weight: 400;
+    color: #999999;
+    padding-bottom: 10px;
+    @include flex(center, flex-end, null);
   }
 }
 .item-big {
@@ -179,9 +202,9 @@ onUnmounted(() => {
   }
   100% {
     opacity: 1;
-    height: 12vh;
-    top: 1vh;
-    right: 5vh;
+    height: 12.5vh;
+    top: 0.7vh;
+    right: 2.7vh;
   }
 }
 </style>

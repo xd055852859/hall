@@ -14,7 +14,7 @@ import zhCn from "element-plus/es/locale/lang/zh-cn";
 import "./styles/common/common.scss";
 import "./styles/element/common.scss";
 import "element-plus/dist/index.css";
-
+import "amfe-flexible/index.js";
 const app = createApp(App);
 // dayjs.extend(relativeTime);
 app.provide("dayjs", dayjs);

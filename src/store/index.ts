@@ -1,8 +1,10 @@
 import { authStore } from "@/store/auth";
 import { commonStore } from "@/store/common";
+import { hallStore } from "@/store/hall";
 export interface IAppStore {
   authStore: ReturnType<typeof authStore>;
   commonStore: ReturnType<typeof commonStore>;
+  hallStore: ReturnType<typeof hallStore>;
 }
 
 const appStore: IAppStore = {} as IAppStore;
@@ -12,6 +14,7 @@ const appStore: IAppStore = {} as IAppStore;
 export const registerStore = () => {
   appStore.authStore = authStore();
   appStore.commonStore = commonStore();
+  appStore.hallStore = hallStore();
 };
 
 export default appStore;

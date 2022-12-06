@@ -14,6 +14,18 @@ const routes: Array<RouteRecordRaw> = [
     children: [],
   },
   {
+    path: "/hallImage",
+    name: "hallImage",
+    component: () => import("@/views/hallImage/hallImage.vue"),
+    children: [],
+  },
+  {
+    path: "/hallDetail/:id",
+    name: "hallDetail",
+    component: () => import("@/views/hallDetail/hallDetail.vue"),
+    children: [],
+  },
+  {
     path: "/pano",
     name: "pano",
     component: () => import("@/views/pano/pano.vue"),
@@ -23,6 +35,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/story",
     name: "story",
     component: () => import("@/views/story/story.vue"),
+    children: [],
+  },
+  {
+    path: "/storyDetail",
+    name: "storyDetail",
+    component: () => import("@/views/story/storyDetail.vue"),
     children: [],
   },
 ];
