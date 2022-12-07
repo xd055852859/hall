@@ -12,20 +12,18 @@ const props = defineProps<{
   changeState: boolean;
 }>();
 const emits = defineEmits<{
-  (e: "setProvince", name: string): void;
-  (e: "setCity", name: string): void;
+  (e: "setMapValue", parmas: { type: string; value: string }): void;
 }>();
 const amap = shallowRef<any>(null);
 const amapData = shallowRef<any>(null);
-const marker = shallowRef<any>(null);
-const polygon = shallowRef<any>(null);
-const cluster = shallowRef<any>(null);
-const clusterList = shallowRef<any>([]);
+const markers = shallowRef<any>([]);
 const LabelsData = ref<any>([]);
 const randomIndex = ref<number>(0);
 const timer1 = ref<any>(null);
 const timer2 = ref<any>(null);
-const countIndex = ref<number>(0);
+const timer3 = ref<any>(null);
+const originZoom = ref<number>(0);
+const zoomType = ref<string>("move");
 const count = ref<number>(0);
 onMounted(() => {
   formatData(props.cMapData);
@@ -34,17 +32,9 @@ onMounted(() => {
 onUnmounted(() => {
   if (amap.value) {
     // amap.value.clearEvents("click");
-    if (marker.value) {
-      amap.value.remove(marker.value);
-      marker.value = null;
-    }
-    if (cluster.value) {
-      cluster.value.setMap(null);
-      cluster.value = null;
-    }
-    if (polygon.value) {
-      amap.value.remove(polygon.value);
-      polygon.value = null;
+    if (markers.value) {
+      amap.value.remove(markers.value);
+      markers.value = null;
     }
     amapData.value = null;
     amap.value.destroy();
@@ -56,6 +46,10 @@ onUnmounted(() => {
     if (timer2.value) {
       clearTimeout(timer2.value);
       timer2.value = null;
+    }
+    if (timer3.value) {
+      clearTimeout(timer3.value);
+      timer3.value = null;
     }
   }
 });
@@ -104,6 +98,7 @@ const initMap = (newData) => {
         center: [92, 38],
         showIndoorMap: false,
         zoom: 4.5,
+        zooms: [4.5, 9],
         // isHotspot: false,
         // defaultCursor: "pointer",
         // touchZoomCenter: 1,
@@ -126,124 +121,106 @@ const initMap = (newData) => {
         }
         amap.value.add(layer);
         amapData.value = AMap;
-        //5,8,10
-        setCluster(newData);
-        amap.value.setFitView();
-        amap.value.panTo([94, 39]);
-        amap.value.setZoom(amap.value.getZoom() + 0.6);
+        setMarkers(newData);
+        // amap.value.setFitView();
+        amap.value.panTo([105, 38.5]);
+        // originZoom.value=amap.value.getZoom()
+        // amap.value.setZoom(amap.value.getZoom() + 0.4);
         amap.value.on("zoomchange", mapZoom);
-        // amap.value.AmbientLight = new AMap.Lights.AmbientLight([1, 1, 1], 0.5);
-        // // 设置平行光源
-        // amap.value.DirectionLight = new AMap.Lights.DirectionLight(
-        //   [0, 0, 1],
-        //   [1, 1, 1],
-        //   1
-        // );
-
-        // var object3Dlayer = new AMap.Object3DLayer({});
-        // amap.value.add(object3Dlayer);
-
-        // var opts = {
-        //   subdistrict: 0,
-        //   extensions: "all",
-        //   level: "country",
-        // };
-
-        // //利用行政区查询获取边界
-        // var district = new AMap.DistrictSearch(opts);
-        // district.search("中国", function (status, result) {
-        //   console.log(result);
-        //   var bounds = result.districtList[0].boundaries;
-        //   var height = 1400000;
-        //   var color = "rgba(0,136,255,0.6)"; //rgba
-        //   var wall = new AMap.Object3D.Wall({
-        //     path: bounds,
-        //     height: height,
-        //     color: color,
-        //   });
-        //   wall.backOrFront = "both";
-        //   wall.transparent = true;
-        //   object3Dlayer.add(wall);
-        //   // var prism = new AMap.Object3D.Prism({
-        //   //   path: bounds,
-        //   //   height: height,
-        //   //   color: color,
-        //   // });
-        //   // prism.transparent = true;
-        //   // object3Dlayer.add(prism);
-        // });
       });
     })
     .catch((e) => {
       console.log(e);
     });
 };
-const setCluster = (pointArray) => {
-  if (cluster.value) {
-    cluster.value.setMap(null);
+const setMarkers = (pointArray) => {
+  if (markers.value.length > 0) {
+    amap.value.remove(markers.value);
+    markers.value = [];
   }
-  let markers: any = [];
   for (var i = 0; i < pointArray.length; i += 1) {
-    let lng = parseFloat((pointArray[i].lng + "").replace(",", ""));
-    let lat = parseFloat((pointArray[i].lat + "").replace(",", ""));
-    markers.push(
-      new amapData.value.Marker({
-        position: [lng, lat],
-        content: `<div class="clusterMarker">
-           
-            <img src="${buildPng}" class="build"/>
-        </div>`,
-        // offset: new amapData.value.Pixel(-15, -15),
-        extData: {
-          ...pointArray[i],
-        },
-      })
-    );
-  }
-  //  <div class="point-box"  style="background-image:url(${pointPng})">
-  // <div class="point">1</div>
-  //         </div>
-  amap.value.plugin("AMap.MarkerClusterer", function () {
-    cluster.value = new amapData.value.MarkerClusterer(amap.value, markers, {
-      renderClusterMarker: renderClusterMarker, // 自定义聚合点样式
-      zoomOnClick: false,
-    });
-    //setStyles(styles:Array)
-    cluster.value.on("click", clickCluster);
-    if (!props.changeState) {
-      timer1.value = setInterval(() => {
-        if (cluster.value) {
-          count.value = cluster.value.getClustersCount();
-        } else {
-          count.value = 30;
+    let marker = new amapData.value.Marker({
+      position: pointArray[i].location,
+      content: `<div class="map-clusterMarker">
+        ${
+          pointArray[i].count > 1
+            ? `<div class="map-point-box" style="background-image:url(${pointPng})">
+          <div class="map-point">${pointArray[i].count}</div>
+        </div>`
+            : ""
         }
-        randomIndex.value = Math.floor(Math.random() * count.value);
-      }, 3000);
+            <img src="${buildPng}" class="map-build"/>
+        </div>`,
+      extData: {
+        ...pointArray[i],
+      },
+    });
+    marker.on("click", clickMarkers);
+    markers.value.push(marker);
+  }
+  console.log(markers.value);
+  amap.value.add(markers.value);
+};
+const clickMarkers = (e) => {
+  if (e.target?.w?.extData) {
+    zoomType.value = "click";
+    switch (e.target?.w?.extData?.type) {
+      case "province":
+        emits("setMapValue", {
+          type: "province",
+          value: e.target?.w?.extData?.name,
+        });
+        amap.value.setCenter([e.lnglat.lng, e.lnglat.lat]);
+        amap.value.setZoom(6.5);
+        // amap.value.panBy(300, 0);
+        // amap.value.setFitView();
+        break;
+      case "city":
+        emits("setMapValue", {
+          type: "city",
+          value: e.target?.w?.extData?.name,
+        });
+        amap.value.setCenter([e.lnglat.lng, e.lnglat.lat]);
+        amap.value.setZoom(8);
+        // amap.value.panBy(300, 0);
+        break;
+      case "single":
+        emits("setMapValue", {
+          type: "single",
+          value: e.target?.w?.extData?._key,
+        });
+        amap.value.setCenter([e.lnglat.lng, e.lnglat.lat]);
+        amap.value.setZoom(9);
+        break;
     }
-  });
-};
-const renderClusterMarker = (context) => {
-  context.marker.setContent(
-    `<div class="clusterMarker">
-        <div class="point-box" style="background-image:url(${pointPng})">
-          <div class="point">${context.count}</div>
-        </div>
-        <img src="${buildPng}" class="build"/>
-     </div>`
-  );
-};
-const clickCluster = (obj) => {
-  console.log(obj.markers[0]?.w?.extData?.province);
-  if (obj.markers[0]?.w?.extData?.province) {
-    emits("setProvince", obj.markers[0].w.extData.province);
+    console.log("click");
+    timer3.value = setTimeout(() => {
+      zoomType.value = "move";
+    }, 2000);
   }
 };
 const mapZoom = () => {
-  console.log(amap.value.getZoom());
+  if (zoomType.value === "move") {
+    console.log(amap.value.getZoom());
+    if (amap.value.getZoom() <= 6.5) {
+      emits("setMapValue", { type: "type", value: "province" });
+      //省
+    } else if (amap.value.getZoom() > 6.5 && amap.value.getZoom() <= 8) {
+      emits("setMapValue", { type: "type", value: "city" });
+      //市
+    } else if (amap.value.getZoom() == 9) {
+      emits("setMapValue", { type: "type", value: "single" });
+    }
+  }
 };
-// const clearMap = (e) => {
-//   amap.value.remove(marker.value);
-// };
+const clickMarker = (lnglat) => {
+  zoomType.value = "click";
+  amap.value.setCenter(lnglat);
+  amap.value.setZoom(9);
+  timer3.value = setTimeout(() => {
+    zoomType.value = "move";
+  }, 2000);
+};
 // watch(
 //   () => props.pointCode,
 //   (newVal) => {
@@ -258,12 +235,9 @@ const mapZoom = () => {
 watch(
   () => props.cMapData,
   (newVal) => {
-    if (cluster.value) {
-      cluster.value.setMap(null);
-    }
     if (newVal.length > 0) {
-      setCluster(newVal);
-      amap.value.setFitView();
+      setMarkers(newVal);
+      // amap.value.setFitView();
     }
   }
 );
@@ -304,9 +278,9 @@ watch(randomIndex, (newIndex) => {
     }
   }
 });
-// defineExpose({
-//   setCluster,
-// });
+defineExpose({
+  clickMarker,
+});
 </script>
 <template>
   <div
@@ -323,38 +297,38 @@ watch(randomIndex, (newIndex) => {
     width: calc(100% + 1px) !important;
   }
 }
-.clusterMarker {
-  width: 78px;
-  height: 65px;
+.map-clusterMarker {
+  width: 52px;
+  height: 43px;
   position: relative;
   z-index: 1;
-  .point-box {
-    width: 47px;
-    height: 65px;
+  .map-point-box {
+    width: 31px;
+    height: 43px;
     position: absolute;
     bottom: 0px;
     left: 0px;
     z-index: 3;
     background-size: 100% 100%;
     transform: scale(1);
-    .point {
-      width: 34px;
-      height: 34px;
+    .map-point {
+      width: 22.6px;
+      height: 22.6px;
       background-color: #fff;
       color: #7dc0cc;
       border-radius: 50%;
-      margin-top: 6.6px;
-      margin-left: 6.6px;
+      margin-top: 4.4px;
+      margin-left: 4.4px;
       text-align: center;
-      font-size: 20px;
-      line-height: 34px;
+      font-size: 13px;
+      line-height: 22.6px;
       font-weight: 900;
     }
   }
 
-  .build {
-    width: 54px;
-    height: 38px;
+  .map-build {
+    width: 36px;
+    height: 25.3px;
     position: absolute;
     bottom: 0px;
     right: 0px;

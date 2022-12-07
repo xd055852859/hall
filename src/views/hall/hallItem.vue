@@ -4,9 +4,21 @@ import { ElMessage } from "element-plus";
 const props = defineProps<{
   list: Hall[];
 }>();
+const emits = defineEmits<{
+  (e: "clickMapMark", parmas: any): void;
+}>();
 </script>
 <template>
-  <div class="hall-item" v-for="item in list" :key="item._key">
+  <div
+    class="hall-item"
+    v-for="item in list"
+    :key="item._key"
+    @click="
+      if (item?.lng && item?.lat) {
+        emits('clickMapMark', { lnglat: [item.lng, item.lat], item: item });
+      }
+    "
+  >
     <div class="hall-item-img">
       <!-- :style="{
         width: imgWidth + 'px',

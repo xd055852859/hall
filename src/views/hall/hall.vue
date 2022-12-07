@@ -4,14 +4,16 @@ import { ResultProps } from "@/interface/Common";
 import { Hall } from "@/interface/Hall";
 import api from "@/services/api";
 import leftArrowSvg from "@/assets/svg/leftArrow.svg";
-
+import backSvg from "@/assets/svg/back.svg";
 import toImgSvg from "@/assets/svg/toImg.svg";
 import { ArrowDown, ArrowRight, CircleClose } from "@element-plus/icons-vue";
 
 import hallItem from "./hallItem.vue";
+import hallImage from "@/views/hallImage/hallImage.vue";
 import { ElMessage } from "element-plus";
 import { storeToRefs } from "pinia";
 import appStore from "@/store";
+import router from "@/router";
 const { hallList } = storeToRefs(appStore.hallStore);
 const { getHallData } = appStore.hallStore;
 const province = ref<string>("");
@@ -19,67 +21,145 @@ const city = ref<string>("");
 const surname = ref<string>("");
 
 const searchList = ref<Hall[]>([]);
-const randomList = ref<Hall[]>([]);
 const nameList = ref<{ surname: string; count: number }[]>([]);
 const searchNameList = ref<{ surname: string; count: number }[]>([]);
-const searchState = ref<string>("list");
+const searchState = ref<string>("province");
 const leftRef = ref<any>(null);
 const enList = ref<string[]>(["All"]);
 const chooseIndex = ref<number>(0);
 const changeState = ref<boolean>(false);
+const nameVisible = ref<boolean>(false);
+const provinceVisible = ref<boolean>(false);
+const showState = ref<string>("map");
+const zoomType = ref<string>("province");
+const addressList = ref<any>([]);
+const provinceList = ref<
+  { province: string; count: number; location: string[] }[]
+>([]);
+const cityList = ref<{ city: string; count: number; location: string[] }[]>([]);
+const chooseBlphaIndex = ref<number>(0);
+const chooseNameIndex = ref<number>(-1);
+const chooseProvinceIndex = ref<number>(-1);
+const chooseCityIndex = ref<number>(-1);
+const mapRef = ref<any>(null);
+
 onMounted(() => {
   if (hallList.value.length === 0) {
     getHallData();
   }
-  for (var i = 0; i < 26; i++) {
-    enList.value.push(String.fromCharCode(65 + i));
-  }
+  //获取坐标
+  getAddress("", "", "");
 });
-const getRandomData = async (limit) => {
-  const dateRes = (await api.request.get("hall/random", {
-    limit: limit,
+
+const getNameData = async (province, city) => {
+  const dateRes = (await api.request.get("surname", {
+    province: province,
+    city: city,
   })) as ResultProps;
-  if (dateRes.msg === "OK") {
-    randomList.value = [...dateRes.data];
-  }
-};
-const getNameData = async () => {
-  const dateRes = (await api.request.get("surname")) as ResultProps;
   if (dateRes.msg === "OK") {
     nameList.value = [...dateRes.data];
     chooseEn(0);
   }
 };
-const getEnData = async () => {
-  const dateRes = (await api.request.get("surname/alpha")) as ResultProps;
+const getEnData = async (province, city) => {
+  const dateRes = (await api.request.get("surname/alpha", {
+    province: province,
+    city: city,
+  })) as ResultProps;
   if (dateRes.msg === "OK") {
-    let arr = dateRes.data.map((item) => item.toUpperCase());
-    enList.value = ["All", ...arr];
+    enList.value = ["All", ...dateRes.data];
+  }
+};
+const getProvinceData = async (surname) => {
+  const dateRes = (await api.request.get("address/province", {
+    surname: surname,
+  })) as ResultProps;
+  if (dateRes.msg === "OK") {
+    provinceList.value = sortArray(dateRes.data);
+  }
+};
+const getCityData = async (surname, province) => {
+  searchState.value = "city";
+  const dateRes = (await api.request.get("address/city", {
+    surname: surname,
+    province: province,
+  })) as ResultProps;
+  if (dateRes.msg === "OK") {
+    cityList.value = sortArray(dateRes.data);
+  }
+};
+const getAddress = async (province, city, surname) => {
+  console.log(province, city, surname);
+  const dateRes = (await api.request.get("address", {
+    surname: surname,
+    province: province,
+    city: city,
+  })) as ResultProps;
+  if (dateRes.msg === "OK") {
+    let arr: any = [];
+    let addressArr: string[] = [];
+    if (city) {
+      dateRes.data.forEach((item) => {
+        let locationStr = item.location.join(",");
+        let index = addressArr.indexOf(locationStr);
+        if (index === -1) {
+          addressArr.push(item.location.join(","));
+          arr.push(item);
+        } else {
+          arr[index].count = arr[index].count + 1;
+        }
+      });
+      addressList.value = [...arr];
+    } else {
+      addressList.value = [...dateRes.data];
+    }
+    console.log(addressList.value);
+  }
+};
+const getAddressType = async (type) => {
+  console.log(province, city, surname);
+  const dateRes = (await api.request.get("address/map", {
+    surname: surname.value,
+    province: province.value,
+    city: city.value,
+    type: type,
+  })) as ResultProps;
+  if (dateRes.msg === "OK") {
+    let arr: any = [];
+    let addressArr: string[] = [];
+    if (city.value) {
+      dateRes.data.forEach((item) => {
+        let locationStr = item.location.join(",");
+        let index = addressArr.indexOf(locationStr);
+        if (index === -1) {
+          addressArr.push(locationStr);
+          arr.push(item);
+        } else {
+          arr[index].count = arr[index].count + 1;
+        }
+      });
+      addressList.value = [...arr];
+    } else {
+      addressList.value = [...dateRes.data];
+    }
+    console.log(addressList.value);
   }
 };
 const searchData = (province, city, surname) => {
-  if (searchState.value !== "list") {
-    searchList.value = [];
-    if (!province && !city && !surname) {
-      searchState.value = "menu";
-      chooseIndex.value = 0;
-    } else {
-      searchState.value = "search";
-      hallList.value.forEach((item) => {
-        if (
-          (item.province === province || !province) &&
-          (item.city === city || !city) &&
-          (item.surname === surname || !surname)
-        ) {
-          searchList.value.push(item);
-        }
-      });
+  searchList.value = [];
+  hallList.value.forEach((item, index) => {
+    if (
+      item.province?.includes(province) &&
+      item.city?.includes(city) &&
+      item.surname?.includes(surname)
+    ) {
+      searchList.value.push(item);
     }
-  }
+  });
 };
 const searchNameData = async (name: string) => {
   const dateRes = (await api.request.get("surname/byBlpha", {
-    alpha: name.toLowerCase(),
+    alpha: name,
   })) as ResultProps;
   if (dateRes.msg === "OK") {
     searchNameList.value = [...dateRes.data];
@@ -93,15 +173,54 @@ const chooseEn = (index: number) => {
     searchNameList.value = [...nameList.value];
   }
 };
-const setProvince = (newProvince) => {
-  searchState.value = "search";
-  province.value = newProvince;
-  surname.value = "";
+
+const setMapValue = (parmas: { type: string; value: string }) => {
+  switch (parmas.type) {
+    case "province":
+      province.value = parmas.value;
+      break;
+    case "city":
+      city.value = parmas.value;
+      break;
+    case "single":
+      console.log(`/hallDetail/${parmas.value}`);
+      router.push(`/hallDetail/${parmas.value}`);
+      break;
+    case "type":
+      zoomType.value = parmas.value;
+      break;
+  }
 };
-const setCity = (newCity) => {
-  searchState.value = "search";
-  city.value = newCity;
+const clearName = () => {
   surname.value = "";
+  chooseBlphaIndex.value = 0;
+  chooseNameIndex.value = -1;
+  // if (showState.value === "map") {
+  //   province.value = "";
+  //   city.value = "";
+  // }
+};
+const clearProvince = () => {
+  searchState.value = "province";
+  chooseCityIndex.value = -1;
+  city.value = "";
+};
+const sortArray = (array) => {
+  array.sort((a, b) => a.length - b.length);
+  return array;
+};
+const clickMapMark = (parmas) => {
+  console.log(mapRef.value.clickMapMark);
+  mapRef.value.clickMarker(parmas.lnglat);
+  addressList.value = [
+    {
+      count: 1,
+      location: parmas.lnglat,
+      name: parmas.item.name,
+      type: "single",
+      _key: parmas.item._key,
+    },
+  ];
 };
 watch([province, city, surname], ([newProvince, newCity, newSurname]) => {
   searchData(newProvince, newCity, newSurname);
@@ -112,31 +231,43 @@ watch([province, city, surname], ([newProvince, newCity, newSurname]) => {
 //     city.value = "";
 //   }
 // });
+watch([province, city, surname], ([newProvince, newCity, newName]) => {
+  if (!newProvince && !newCity && !newName) {
+    searchList.value = [...hallList.value];
+  }
+  getAddress(newProvince, newCity, newName);
+});
+watch(zoomType, (newType) => {
+  getAddressType(newType);
+});
 watch(
-  [searchState, hallList],
-  ([newState, newList]) => {
-    if (newState === "list") {
-      // let limit = parseInt(
-      //   (leftRef.value.offsetHeight - 130) / (imgWidth.value * 0.66 + 15) + ""
-      // );
-      let limit = 15;
-      getRandomData(limit);
-      province.value = "";
-      city.value = "";
-      surname.value = "";
-      if (newList) {
-        searchList.value = [...newList];
-      }
-    } else if (newState === "menu") {
+  surname,
+  (newName) => {
+    getProvinceData(newName);
+  },
+  { immediate: true }
+);
+watch(
+  [province, city],
+  ([newProvince, newCity]) => {
+    getNameData(newProvince, newCity);
+    getEnData(newProvince, newCity);
+  },
+  { immediate: true }
+);
+watch(
+  hallList,
+  (newList) => {
+    if (newList) {
       searchList.value = [...newList];
-      if (nameList.value.length === 0) {
-        getNameData();
-        getEnData();
-      }
     }
   },
   { immediate: true }
 );
+watch(showState, () => {
+  nameVisible.value = false;
+  provinceVisible.value = false;
+});
 </script>
 <template>
   <div class="hall" @click="changeState = true" @touch="changeState = true">
@@ -151,119 +282,238 @@ watch(
         <div class="hall-left-title">探索祠堂</div>
         <div class="hall-left-subtitle">共收录{{ hallList.length }}座</div>
       </div>
-      <div class="hall-left-search">
-        <div
-          v-if="searchState === 'list'"
-          class="left-search-title"
-          @click="searchState = 'menu'"
-        >
-          全部姓氏
-        </div>
-        <!-- <el-input
-          class="left-search-input"
-          v-model="surname"
-          placeholder="全部姓氏"
-          style="width: calc(100% - 25px)"
-          @click.stop=""
-          clearable
-          v-else
-        /> -->
-        <div v-else class="left-search-title">
-          {{
-            searchState === "search"
-              ? surname
-                ? surname
-                : province
-                ? city
-                  ? province + " > " + city
-                  : province
-                : province
-              : "全部姓氏"
-          }}
-          <div
-            class="left-search-close"
-            @click.stop="
-              surname = '';
-              province = '';
-              city = '';
-            "
-            v-if="surname || province"
-          >
-            <el-icon><CircleClose /></el-icon>
-          </div>
-        </div>
-        <div
-          class="left-search-icon"
-          @click="searchState = 'menu'"
-          v-if="searchState === 'list'"
-        >
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-        <div class="left-search-icon" @click="searchState = 'list'" v-else>
-          <el-icon><ArrowDown /></el-icon>
-        </div>
-      </div>
       <div class="hall-left-container">
-        <div class="hall-box" v-if="searchState === 'list'">
-          <hall-item :list="randomList" />
-        </div>
-        <div class="hall-box" v-else-if="searchState === 'search'">
-          <hall-item :list="searchList" />
-        </div>
-        <div class="hall-name" v-else>
-          <div class="hall-name-left">
-            <div
-              class="hall-name-choose"
-              v-for="(item, index) in enList"
-              :key="`en${index}`"
-              @click="chooseEn(index)"
-              :style="
-                index === chooseIndex
-                  ? { color: '#84b840', border: '2px solid #84b840' }
-                  : {}
-              "
-            >
-              {{ item }}
+        <!--  :style="{
+            height:
+              nameVisible || provinceVisible
+                ? showState === 'map'
+                  ? '100%'
+                  : 'calc(100% - 50px)'
+                : showState === 'map'
+                ? '50px'
+                : '110px',
+          }" -->
+        <div
+          class="hall-left-search"
+          :style="{
+            height: nameVisible || provinceVisible ? 'calc(100% - 50px)' : '110px',
+          }"
+        >
+          <div
+            class="hall-search-nav"
+            @click="
+              nameVisible = !nameVisible;
+              provinceVisible = false;
+              searchState = 'province';
+            "
+            style="margin-bottom: 20px"
+          >
+            <div class="search-box-title">
+              {{ surname ? surname : "全部姓氏" }}
+              <!-- {{ province && showState === "map" ? province : "" }}
+              {{ city && showState === "map" ? " > " + city : "" }}
+              {{
+                (!surname && !province && !city && showState === "map") ||
+                (!surname && showState === "image")
+                  ? "全部姓氏"
+                  : ""
+              }} -->
+              <div
+                class="search-box-close"
+                @click.stop="clearName()"
+                v-if="surname"
+              >
+                <el-icon><CircleClose /></el-icon>
+              </div>
+            </div>
+            <div class="search-box-icon" v-if="nameVisible">
+              <el-icon><ArrowDown /></el-icon>
+            </div>
+            <div class="search-box-icon" v-else>
+              <el-icon><ArrowRight /></el-icon>
             </div>
           </div>
-          <div class="hall-name-right">
-            <div
-              :class="{
-                'hall-name-second': item.surname.length === 2,
-                'hall-name-fourth': item.surname.length === 4,
-              }"
-              class="hall-name-item"
-              v-for="(item, index) in searchNameList"
-              :key="`searchName${index}`"
-              @click="
-                surname = item.surname;
-                searchState = 'search';
-              "
-            >
-              <div class="name-item-top">{{ item.surname }}</div>
-              <div class="name-item-bottom">{{ item.count }}</div>
+          <div class="hall-search-box" v-if="nameVisible">
+            <div class="hall-search-container">
+              <div class="search-container-left">
+                <div
+                  class="search-container-choose"
+                  v-for="(item, index) in enList"
+                  :key="`en${index}`"
+                  @click="chooseEn(index)"
+                  :style="
+                    index === chooseBlphaIndex
+                      ? { color: '#84b840', border: '2px solid #84b840' }
+                      : {}
+                  "
+                >
+                  {{ item }}
+                </div>
+              </div>
+              <div class="search-container-right">
+                <div
+                  :class="{
+                    'search-container-second': item.surname.length === 2,
+                    'search-container-fourth': item.surname.length === 4,
+                  }"
+                  class="search-container-item"
+                  v-for="(item, index) in searchNameList"
+                  :style="
+                    index === chooseNameIndex
+                      ? { color: '#84b840', border: '2px solid #84b840' }
+                      : {}
+                  "
+                  :key="`searchName${index}`"
+                  @click="
+                    surname = item.surname;
+                    chooseNameIndex = index;
+                    nameVisible = false;
+                  "
+                >
+                  <div class="container-item-top">{{ item.surname }}</div>
+                  <div class="container-item-bottom">{{ item.count }}</div>
+                </div>
+              </div>
             </div>
           </div>
+
+          <!--<template v-if="showState === 'image'"> -->
+          <div
+            class="hall-search-nav"
+            @click="
+              provinceVisible = !provinceVisible;
+              nameVisible = false;
+            "
+          >
+            <div class="search-box-title">
+              {{
+                province
+                  ? city
+                    ? `${province} > ${city}`
+                    : province
+                  : "全部地点"
+              }}
+              <div
+                class="search-box-close"
+                @click.stop="
+                  province = '';
+                  city = '';
+                  chooseProvinceIndex = -1;
+                  chooseCityIndex = -1;
+                  searchState = 'province';
+                "
+                v-if="province"
+              >
+                <el-icon><CircleClose /></el-icon>
+              </div>
+            </div>
+            <div class="search-box-icon" v-if="provinceVisible">
+              <el-icon><ArrowDown /></el-icon>
+            </div>
+            <div class="search-box-icon" v-else>
+              <el-icon><ArrowRight /></el-icon>
+            </div>
+          </div>
+          <div class="hall-search-box" v-if="provinceVisible">
+            <div class="hall-search-subtitle" v-if="provinceVisible">
+              请选择{{ searchState === "province" ? "省份" : "城市" }}
+              <div
+                v-if="searchState === 'city'"
+                class="dp-center-center icon-point"
+                @click="clearProvince()"
+              >
+                <img
+                  :src="backSvg"
+                  alt=""
+                  style="width: 15px; height: 15px; margin-right: 5px"
+                />
+                返回上一级
+              </div>
+            </div>
+            <div class="hall-search-container" v-if="provinceVisible">
+              <div
+                class="search-container-right"
+                style="width: 100%"
+                v-if="searchState === 'province'"
+              >
+                <div
+                  :class="{
+                    'search-container-fourth': item.province.length > 4,
+                  }"
+                  class="search-container-item province-item"
+                  v-for="(item, index) in provinceList"
+                  :key="`province${index}`"
+                  :style="
+                    index === chooseProvinceIndex
+                      ? { color: '#84b840', border: '2px solid #84b840' }
+                      : {}
+                  "
+                  @click="
+                    province = item.province;
+                    chooseProvinceIndex = index;
+                    getCityData(surname, province);
+                  "
+                >
+                  <div class="container-item-top">{{ item.province }}</div>
+                  <div class="container-item-bottom">{{ item.count }}</div>
+                </div>
+              </div>
+
+              <div class="search-container-right" style="width: 100%" v-else>
+                <div
+                  :class="{
+                    'search-container-fourth': item.city.length > 4,
+                  }"
+                  class="search-container-item province-item"
+                  v-for="(item, index) in cityList"
+                  :key="`city${index}`"
+                  :style="
+                    index === chooseCityIndex
+                      ? { color: '#84b840', border: '2px solid #84b840' }
+                      : {}
+                  "
+                  @click="
+                    city = item.city;
+                    chooseCityIndex = index;
+                  "
+                >
+                  <div class="container-item-top">{{ item.city }}</div>
+                  <div class="container-item-bottom">{{ item.count }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- </template>-->
+        </div>
+        <div class="hall-box" v-if="showState === 'map'">
+          <hall-item :list="searchList" @clickMapMark="clickMapMark" />
         </div>
       </div>
     </div>
-    <CMap
-      :mapId="'hallMap'"
-      :width="'100%'"
-      :height="'100%'"
-      :cMapData="searchList"
-      :changeState="changeState"
-      @setProvince="setProvince"
-      @setCity="setCity"
-      v-if="hallList.length > 0"
-    />
+
+    <div class="hall-right">
+      <CMap
+        :mapId="'hallMap'"
+        :width="'100%'"
+        :height="'100%'"
+        :cMapData="addressList"
+        :changeState="changeState"
+        @setMapValue="setMapValue"
+        ref="mapRef"
+        v-if="addressList.length > 0"
+      />
+      <hallImage :list="searchList" v-if="showState === 'image'" />
+    </div>
     <div class="hall-message-box" v-if="surname || province || city">
       <div class="hall-message">
-        {{ surname ? surname + "氏" : province ? province : city ? city : "" }}
-        共收录{{ searchList.length }}座祠堂
+        {{ surname ? surname + "氏" : "" }} {{ province ? province : "" }}
+        {{ city ? city : "" }} 共收录{{ searchList.length }}座祠堂
       </div>
     </div>
-    <div class="hall-to-img" @click="$router.push('/hallImage')">
+    <div
+      class="hall-to-img"
+      @click="showState = showState === 'map' ? 'image' : 'map'"
+    >
       <img :src="toImgSvg" alt="" />
     </div>
   </div>
@@ -274,13 +524,14 @@ watch(
   height: 100vh;
   position: relative;
   z-index: 1;
+  @include flex(space-between, center, null);
   .hall-left {
     width: 500px;
     height: 100vh;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 4;
+    position: relative;
+    // top: 0px;
+    // left: 0px;
+    z-index: 1;
     //  background-color: transparent;
     box-shadow: 0px 2px 6px 0px #46838d;
     .hall-left-header {
@@ -307,120 +558,224 @@ watch(
         margin-bottom: 8px;
       }
     }
-    .hall-left-search {
-      width: calc(100% - 90px);
-      height: 60px;
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px solid #ffffff;
-      border-radius: 4px;
-      box-sizing: border-box;
-      margin: 21px 0px 33px 45px;
-      padding: 9px 20px;
-      box-sizing: border-box;
-      cursor: pointer;
-      @include flex(space-between, center, null);
-      .left-search-title {
-        width: calc(100% - 30px);
-        height: 100%;
-        font-size: 30px;
-        position: relative;
-        z-index: 1;
-        @include flex(space-between, center, null);
-        .left-search-close {
-          width: 40px;
-          height: 40px;
-          margin-top: 10px;
-        }
-      }
 
-      .left-search-icon {
-        width: 15px;
-        height: 8.5px;
-        flex-shrink: 0;
-        @include flex(center, center, null);
-      }
-    }
     .hall-left-container {
       width: 100%;
-      height: calc(100% - 219px);
+      height: calc(100% - 97px);
       padding-left: 45px;
       box-sizing: border-box;
+      .hall-left-search {
+        width: calc(100% - 45px);
+        border-radius: 4px;
+        margin: 21px 45px 33px 0px;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+        .hall-search-nav {
+          width: 100%;
+          height: 60px;
+          border-radius: 4px;
+          background: rgba(255, 255, 255, 0.5);
+          box-sizing: border-box;
+          padding: 9px 20px;
+          box-sizing: border-box;
+          border: 1px solid #ffffff;
+          cursor: pointer;
+          @include flex(space-between, center, null);
+          .search-box-title {
+            width: calc(100% - 30px);
+            height: 100%;
+            font-size: 25px;
+            position: relative;
+            z-index: 1;
+            @include flex(space-between, center, null);
+            .search-box-close {
+              width: 40px;
+              height: 40px;
+              margin-top: 10px;
+            }
+          }
+          .search-box-icon {
+            width: 15px;
+            height: 8.5px;
+            flex-shrink: 0;
+            @include flex(center, center, null);
+          }
+        }
+        .hall-search-box {
+          width: 100%;
+          height: calc(100% - 140px);
+          .hall-search-subtitle {
+            width: 100%;
+            height: 45px;
+            font-size: 20px;
+            color: #fff;
+            @include flex(space-between, center, null);
+            padding: 0px 10px;
+            box-sizing: border-box;
+          }
+          .hall-search-container {
+            width: 100%;
+            height: calc(100% - 20px);
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            @include flex(space-between, center, null);
+            .search-container-left {
+              width: 85px;
+              height: 100%;
+              border-right: 1px solid #ffffff;
+              padding-right: 14.5px;
+              box-sizing: border-box;
+              align-content: flex-start;
+              @include scroll();
+              @include flex(center, center, wrap);
+              .search-container-choose {
+                width: 70px;
+                height: 70px;
+                margin-bottom: 10px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 4px;
+                color: #999999;
+                text-align: center;
+                font-size: 30px;
+                line-height: 70px;
+                font-family: yahei !important;
+                cursor: pointer;
+              }
+              &::-webkit-scrollbar {
+                width: 0px;
+                height: 0px;
+              }
+            }
+            .search-container-right {
+              width: calc(100% - 70px);
+              height: 100%;
+              border-right: 1px solid #ffffff;
+              padding-left: 10px;
+              align-content: flex-start;
+              @include scroll();
+              @include flex(flex-start, center, wrap);
+              .search-container-item {
+                width: 68px;
+                height: 98px;
+                margin-right: 10px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 4px;
+                margin-top: 10px;
+                color: #333333;
+                cursor: pointer;
+                @include p-number(10px, 10px);
+                .container-item-top {
+                  width: 100%;
+                  height: 45px;
+                  @include flex(center, center, null);
+                  text-align: center;
+                  font-size: 30px;
+                  text-align: center;
+                }
+                .container-item-bottom {
+                  width: 100%;
+                  height: 35px;
+                  font-size: 20px;
+                  text-align: center;
+                  line-height: 35px;
+                  color: #999999;
+                }
+              }
+              .province-item {
+                width: 120px;
+              }
+              .search-container-second {
+                width: 146px;
+              }
+              .search-container-fourth {
+                width: 100%;
+              }
+              &::-webkit-scrollbar {
+                width: 0px;
+                height: 0px;
+              }
+            }
+          }
+        }
+      }
       .hall-box {
         width: 100%;
         height: 100%;
         @include scroll();
       }
-      .hall-name {
-        width: 100%;
-        height: 100%;
-        padding-right: 45px;
-        box-sizing: border-box;
-        @include flex(space-between, center, null);
-        .hall-name-left {
-          width: 85px;
-          height: 100%;
-          border-right: 1px solid #ffffff;
-          padding-right: 14.5px;
-          box-sizing: border-box;
-          @include scroll();
-          @include flex(center, center, wrap);
-          .hall-name-choose {
-            width: 70px;
-            height: 70px;
-            margin-bottom: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 4px;
-            color: #999999;
-            text-align: center;
-            font-size: 30px;
-            line-height: 70px;
-            font-family: yahei !important;
-            cursor: pointer;
-          }
-        }
-        .hall-name-right {
-          width: calc(100% - 70px);
-          height: 100%;
-          border-right: 1px solid #ffffff;
-          padding-left: 10px;
-          align-content: flex-start;
-          @include scroll();
-          @include flex(flex-start, center, wrap);
-          .hall-name-item {
-            width: 68px;
-            height: 98px;
-            margin-right: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 4px;
-            margin-top: 10px;
-            cursor: pointer;
-            @include p-number(10px, 10px);
-            .name-item-top {
-              width: 100%;
-              height: 45px;
-              @include flex(center, center, null);
-              text-align: center;
-              font-size: 30px;
-              text-align: center;
-              color: #333333;
-            }
-            .name-item-bottom {
-              width: 100%;
-              height: 35px;
-              font-size: 20px;
-              text-align: center;
-              line-height: 35px;
-              color: #999999;
-            }
-          }
-          .hall-name-second {
-            width: 146px;
-          }
-          .hall-name-fourth {
-            width: 100%;
-          }
-        }
-      }
+      // .hall-name {
+      //   width: 100%;
+      //   height: 100%;
+      //   padding-right: 45px;
+      //   box-sizing: border-box;
+      //   @include flex(space-between, center, null);
+      //   .hall-name-left {
+      //     width: 85px;
+      //     height: 100%;
+      //     border-right: 1px solid #ffffff;
+      //     padding-right: 14.5px;
+      //     box-sizing: border-box;
+      //     @include scroll();
+      //     @include flex(center, center, wrap);
+      //     .hall-name-choose {
+      //       width: 70px;
+      //       height: 70px;
+      //       margin-bottom: 10px;
+      //       background: rgba(255, 255, 255, 0.8);
+      //       border-radius: 4px;
+      //       color: #999999;
+      //       text-align: center;
+      //       font-size: 30px;
+      //       line-height: 70px;
+      //       font-family: yahei !important;
+      //       cursor: pointer;
+      //     }
+      //   }
+      //   .hall-name-right {
+      //     width: calc(100% - 70px);
+      //     height: 100%;
+      //     border-right: 1px solid #ffffff;
+      //     padding-left: 10px;
+      //     align-content: flex-start;
+      //     @include scroll();
+      //     @include flex(flex-start, center, wrap);
+      //     .hall-name-item {
+      //       width: 68px;
+      //       height: 98px;
+      //       margin-right: 10px;
+      //       background: rgba(255, 255, 255, 0.8);
+      //       border-radius: 4px;
+      //       margin-top: 10px;
+      //       cursor: pointer;
+      //       @include p-number(10px, 10px);
+      //       .name-item-top {
+      //         width: 100%;
+      //         height: 45px;
+      //         @include flex(center, center, null);
+      //         text-align: center;
+      //         font-size: 30px;
+      //         text-align: center;
+      //         color: #333333;
+      //       }
+      //       .name-item-bottom {
+      //         width: 100%;
+      //         height: 35px;
+      //         font-size: 20px;
+      //         text-align: center;
+      //         line-height: 35px;
+      //         color: #999999;
+      //       }
+      //     }
+      //     .hall-name-second {
+      //       width: 146px;
+      //     }
+      //     .hall-name-fourth {
+      //       width: 100%;
+      //     }
+      //   }
+      // }
     }
 
     &::before {
@@ -440,6 +795,12 @@ watch(
 
       // background-color: rgba(255,255,255,0.2);
     }
+  }
+  .hall-right {
+    width: calc(100% - 500px);
+    height: 100%;
+    position: relative;
+    z-index: 1;
   }
   .hall-message-box {
     width: 100%;
