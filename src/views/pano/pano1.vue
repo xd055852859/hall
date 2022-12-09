@@ -14,11 +14,16 @@ const panoSrc = ref<any>(null);
 const loopState = ref<boolean>(false);
 let timer = ref<any>(null);
 let firstArray = ref<boolean[]>([false, false, false]);
+let normalState = ref<boolean>(false);
 onMounted(() => {
   panoWidth.value = document.documentElement.offsetWidth;
   panoHeight.value = document.documentElement.offsetHeight;
   panoSrc.value = pano1Mp4;
-  timer.value = setTimeout(() => {}, 5000);
+  timer.value = setTimeout(() => {
+    firstArray.value[0] = true;
+    normalState.value = true;
+    panoSrc.value = pano2Mp4;
+  }, 5000);
 });
 </script>
 <template>
@@ -31,10 +36,71 @@ onMounted(() => {
       autoplay
       class="pano-video"
       muted
-      :loopState="loopState"
     />
   </div>
-  <div class="pano-button">
+  <div class="pano-full">
+    <div>
+      <video
+        :width="panoWidth"
+        :height="panoHeight"
+        :src="panoSrc"
+        autoplay
+        class="pano-video"
+        muted
+        :loopState="loopState"
+      />
+      <video
+        :width="panoWidth"
+        :height="panoHeight"
+        :src="panoSrc"
+        autoplay
+        class="pano-video"
+        muted
+        :loopState="loopState"
+      />
+    </div>
+    <div>
+      <video
+        :width="panoWidth"
+        :height="panoHeight"
+        :src="panoSrc"
+        autoplay
+        class="pano-video"
+        muted
+        :loopState="loopState"
+      />
+      <video
+        :width="panoWidth"
+        :height="panoHeight"
+        :src="panoSrc"
+        autoplay
+        class="pano-video"
+        muted
+        :loopState="loopState"
+      />
+    </div>
+    <div>
+      <video
+        :width="panoWidth"
+        :height="panoHeight"
+        :src="panoSrc"
+        autoplay
+        class="pano-video"
+        muted
+        :loopState="loopState"
+      />
+      <video
+        :width="panoWidth"
+        :height="panoHeight"
+        :src="panoSrc"
+        autoplay
+        class="pano-video"
+        muted
+        :loopState="loopState"
+      />
+    </div>
+  </div>
+  <div class="pano-button" v-if="normalState">
     <div @click="panoSrc = !firstArray[0] ? pano3Mp4 : pano2Mp4">孔庙</div>
     <div @click="panoSrc = !firstArray[1] ? pano5Mp4 : pano4Mp4">太庙</div>
     <div @click="panoSrc = !firstArray[1] ? pano7Mp4 : pano6Mp4">程家祠</div>
@@ -44,11 +110,19 @@ onMounted(() => {
 .pano {
   width: 100vw;
   height: 100vh;
-  overflow-x: auto;
-  overflow-y: hidden;
+
   .pano-video {
     object-fit: fill;
   }
+}
+.pano-full{
+
+}
+.pano-button {
+  position: fixed;
+  left: 0px;
+  bottom: 0px;
+  z-index: 5;
 }
 </style>
 <style></style>
