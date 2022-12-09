@@ -41,6 +41,7 @@ const emits = defineEmits<{
   width: 100%;
   height: 120px;
   margin-bottom: 26px;
+  cursor: pointer;
   @include flex(space-between, center, null);
   .hall-item-img {
     width: 190px;

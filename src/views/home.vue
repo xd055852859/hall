@@ -76,7 +76,12 @@ onUnmounted(() => {
       时光科技 提供技术支持
     </div>
     <div class="home-bg">
-      <el-carousel height="83vh" :interval="5000" :pause-on-hover="false">
+      <el-carousel
+        height="83vh"
+        :interval="5000"
+        :pause-on-hover="false"
+        arrow="never"
+      >
         <el-carousel-item v-for="item in imgList" :key="item">
           <div class="home-img-box">
             <img :src="item" alt="" />

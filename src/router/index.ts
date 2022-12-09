@@ -32,13 +32,19 @@ const routes: Array<RouteRecordRaw> = [
     children: [],
   },
   {
+    path: "/pano1",
+    name: "pano1",
+    component: () => import("@/views/pano/pano1.vue"),
+    children: [],
+  },
+  {
     path: "/story",
     name: "story",
     component: () => import("@/views/story/story.vue"),
     children: [],
   },
   {
-    path: "/storyDetail",
+    path: "/storyDetail/:id",
     name: "storyDetail",
     component: () => import("@/views/story/storyDetail.vue"),
     children: [],

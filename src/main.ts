@@ -6,7 +6,7 @@ import router from "@/router";
 // import i18n from "@/language/i18n";
 import dayjs from "dayjs";
 // import relativeTime from "dayjs/plugin/relativeTime";
-// import Cheader from "@/components/cheader.vue";
+import Cheader from "@/components/cheader.vue";
 // import Cbutton from "@/components/cbutton.vue";
 import Cicon from "@/components/cIcon.vue";
 import ElementPlus from "element-plus";
@@ -19,7 +19,7 @@ const app = createApp(App);
 // dayjs.extend(relativeTime);
 app.provide("dayjs", dayjs);
 app
-//   .component("cheader", Cheader)
+  .component("cheader", Cheader)
 //   .component("cbutton", Cbutton)
   .component("cicon", Cicon)
 app

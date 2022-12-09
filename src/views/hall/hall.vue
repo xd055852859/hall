@@ -31,7 +31,7 @@ const changeState = ref<boolean>(false);
 const nameVisible = ref<boolean>(false);
 const provinceVisible = ref<boolean>(false);
 const showState = ref<string>("map");
-const zoomType = ref<string>("province");
+const zoomType = ref<string>("");
 const addressList = ref<any>([]);
 const provinceList = ref<
   { province: string; count: number; location: string[] }[]
@@ -96,6 +96,7 @@ const getAddress = async (province, city, surname) => {
     city: city,
   })) as ResultProps;
   if (dateRes.msg === "OK") {
+    addressList.value = [];
     let arr: any = [];
     let addressArr: string[] = [];
     if (city) {
@@ -109,11 +110,14 @@ const getAddress = async (province, city, surname) => {
           arr[index].count = arr[index].count + 1;
         }
       });
-      addressList.value = [...arr];
     } else {
-      addressList.value = [...dateRes.data];
+      arr = [...dateRes.data];
     }
-    console.log(addressList.value);
+    arr.forEach((item) => {
+      if (item.location) {
+        addressList.value.push(item);
+      }
+    });
   }
 };
 const getAddressType = async (type) => {
@@ -125,23 +129,23 @@ const getAddressType = async (type) => {
     type: type,
   })) as ResultProps;
   if (dateRes.msg === "OK") {
-    let arr: any = [];
-    let addressArr: string[] = [];
-    if (city.value) {
-      dateRes.data.forEach((item) => {
-        let locationStr = item.location.join(",");
-        let index = addressArr.indexOf(locationStr);
-        if (index === -1) {
-          addressArr.push(locationStr);
-          arr.push(item);
-        } else {
-          arr[index].count = arr[index].count + 1;
-        }
-      });
-      addressList.value = [...arr];
-    } else {
+    // let arr: any = [];
+    // let addressArr: string[] = [];
+    // if (city.value) {
+    //   dateRes.data.forEach((item) => {
+    //     let locationStr = item.location.join(",");
+    //     let index = addressArr.indexOf(locationStr);
+    //     if (index === -1) {
+    //       addressArr.push(locationStr);
+    //       arr.push(item);
+    //     } else {
+    //       arr[index].count = arr[index].count + 1;
+    //     }
+    //   });
+    //   addressList.value = [...arr];
+    // } else {
       addressList.value = [...dateRes.data];
-    }
+    // }
     console.log(addressList.value);
   }
 };
@@ -175,15 +179,16 @@ const chooseEn = (index: number) => {
 };
 
 const setMapValue = (parmas: { type: string; value: string }) => {
+  console.log(parmas.value)
   switch (parmas.type) {
     case "province":
       province.value = parmas.value;
+      console.log(parmas.value);
       break;
     case "city":
       city.value = parmas.value;
       break;
     case "single":
-      console.log(`/hallDetail/${parmas.value}`);
       router.push(`/hallDetail/${parmas.value}`);
       break;
     case "type":
@@ -210,7 +215,6 @@ const sortArray = (array) => {
   return array;
 };
 const clickMapMark = (parmas) => {
-  console.log(mapRef.value.clickMapMark);
   mapRef.value.clickMarker(parmas.lnglat);
   addressList.value = [
     {
@@ -218,6 +222,7 @@ const clickMapMark = (parmas) => {
       location: parmas.lnglat,
       name: parmas.item.name,
       type: "single",
+      cover:parmas.item.cover,
       _key: parmas.item._key,
     },
   ];
@@ -238,6 +243,7 @@ watch([province, city, surname], ([newProvince, newCity, newName]) => {
   getAddress(newProvince, newCity, newName);
 });
 watch(zoomType, (newType) => {
+  console.log(newType)
   getAddressType(newType);
 });
 watch(
@@ -258,7 +264,7 @@ watch(
 watch(
   hallList,
   (newList) => {
-    if (newList) {
+    if (newList.length > 0) {
       searchList.value = [...newList];
     }
   },
@@ -280,7 +286,7 @@ watch(showState, () => {
           @click="$router.push('/')"
         />
         <div class="hall-left-title">探索祠堂</div>
-        <div class="hall-left-subtitle">共收录{{ hallList.length }}座</div>
+        <div class="hall-left-subtitle">共收录500座</div>
       </div>
       <div class="hall-left-container">
         <!--  :style="{
@@ -296,7 +302,8 @@ watch(showState, () => {
         <div
           class="hall-left-search"
           :style="{
-            height: nameVisible || provinceVisible ? 'calc(100% - 50px)' : '110px',
+            height:
+              nameVisible || provinceVisible ? 'calc(100% - 50px)' : '110px',
           }"
         >
           <div

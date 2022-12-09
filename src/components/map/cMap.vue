@@ -4,6 +4,9 @@ import { commonMapData } from "./cMap";
 import buildPng from "@/assets/img/build.png";
 import pointPng from "@/assets/img/point.png";
 import { Hall } from "@/interface/Hall";
+import appStore from "@/store";
+import { storeToRefs } from "pinia";
+const { hallList } = storeToRefs(appStore.hallStore);
 const props = defineProps<{
   mapId: string;
   width: string;
@@ -70,8 +73,7 @@ const formatData = (newData) => {
         style: {
           fontSize: 14,
           fontWeight: "normal",
-          fillColor: "#eee",
-          strokeColor: "#88f",
+          fillColor: "#333",
           strokeWidth: 2,
         },
       },
@@ -142,19 +144,23 @@ const setMarkers = (pointArray) => {
     let marker = new amapData.value.Marker({
       position: pointArray[i].location,
       content: `<div class="map-clusterMarker">
-        ${
-          pointArray[i].count > 1
-            ? `<div class="map-point-box" style="background-image:url(${pointPng})">
-          <div class="map-point">${pointArray[i].count}</div>
-        </div>`
-            : ""
-        }
-            <img src="${buildPng}" class="map-build"/>
+          <div class="map-point-box" style="background-image:url(${pointPng});zoom:${
+        pointArray[i].cover ? 1.5 : 1
+      }">
+            <div class="map-point">${
+              pointArray[i].cover
+                ? `<img src="${pointArray[i].cover}_cover?imageView2/1/w/100">`
+                : pointArray[i].count
+            }
+              </div>  
+          </div>
+        <img src="${buildPng}" class="map-build"/>
         </div>`,
       extData: {
         ...pointArray[i],
       },
     });
+    //
     marker.on("click", clickMarkers);
     markers.value.push(marker);
   }
@@ -181,7 +187,7 @@ const clickMarkers = (e) => {
           value: e.target?.w?.extData?.name,
         });
         amap.value.setCenter([e.lnglat.lng, e.lnglat.lat]);
-        amap.value.setZoom(8);
+        amap.value.setZoom(8.5);
         // amap.value.panBy(300, 0);
         break;
       case "single":
@@ -236,6 +242,7 @@ watch(
   () => props.cMapData,
   (newVal) => {
     if (newVal.length > 0) {
+      console.log("newVal", newVal);
       setMarkers(newVal);
       // amap.value.setFitView();
     }
@@ -298,7 +305,7 @@ defineExpose({
   }
 }
 .map-clusterMarker {
-  width: 52px;
+  width: 40px;
   height: 43px;
   position: relative;
   z-index: 1;
@@ -323,12 +330,17 @@ defineExpose({
       font-size: 13px;
       line-height: 22.6px;
       font-weight: 900;
+      overflow: hidden;
+      img {
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 
   .map-build {
-    width: 36px;
-    height: 25.3px;
+    width: 27px;
+    height: 19px;
     position: absolute;
     bottom: 0px;
     right: 0px;

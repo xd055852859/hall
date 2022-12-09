@@ -10,6 +10,7 @@ onMounted(() => {
 onMounted;
 </script>
 <template>
+  <cheader title="云游祠堂" routeName="/" />
   <div class="pano">
     <!-- <video
       :width="panoWidth"
@@ -21,11 +22,17 @@ onMounted;
       muted
       loop
     /> -->
-    <div class="pano-box">
+    <!-- <div class="pano-box">
       <div></div>
       <div></div>
       <div></div>
-    </div>
+    </div> -->
+    <iframe
+      src="https://ad9pw33f2.wasee.com/wt/ad9pw33f2?def_sid=0"
+      frameborder="0"
+      width="100%"
+      height="100%"
+    ></iframe>
   </div>
 </template>
 <style scoped lang="scss">
