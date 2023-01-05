@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="94px" height="94px" viewBox="0 0 94 94" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>搜索</title>
+    <defs>
+        <circle id="path-1" cx="33" cy="33" r="33"></circle>
+        <filter x="-34.1%" y="-26.5%" width="168.2%" height="168.2%" filterUnits="objectBoundingBox" id="filter-2">
+            <feMorphology radius="3.5" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="5" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4.5" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.0583205857 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="华夏祠堂-图库" transform="translate(-1806.000000, -122.000000)">
+            <g id="搜索" transform="translate(1820.000000, 131.000000)">
+                <g id="蒙版">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                    <circle stroke="#84B840" stroke-width="2" fill="#FFFFFF" fill-rule="evenodd" cx="33" cy="33" r="34"></circle>
+                </g>
+                <path d="M48.7259326,46.2287444 L41.6748327,39.5165058 L41.7409281,39.4347689 C43.6396863,37.1152558 44.6854283,34.194849 44.6854283,31.2131576 C44.6854283,23.9811809 38.7214584,18.0967742 31.3927951,18.0967742 C24.0618856,18.0967742 18.0967742,23.9811809 18.0967742,31.2131576 C18.0967742,38.4450979 24.0618856,44.3289597 31.3927951,44.3289597 C34.6048801,44.3289597 37.7082669,43.1769772 40.1310376,41.0882166 L40.2105361,41.0197029 L47.2447347,47.6569251 L47.3152486,47.6569251 L47.3163901,47.7143953 C47.4944239,47.8380542 47.6948456,47.9032258 47.9131258,47.9032258 C48.4953538,47.9032258 48.9677419,47.4348912 48.9677419,46.8626962 C48.9677419,46.6418975 48.8871757,46.4276014 48.7259326,46.2287444 Z M31.3927583,42.24474 C25.2267097,42.24474 20.2110879,37.2964212 20.2110879,31.2131939 C20.2110879,25.1305115 25.2267097,20.1832825 31.3927583,20.1832825 C37.5570394,20.1832825 42.5727717,25.1305115 42.5727717,31.2131939 C42.5727717,37.2964212 37.5570762,42.24474 31.3927583,42.24474 Z" id="形状" stroke="#87B940" stroke-width="0.907969639" fill="#87B940" fill-rule="nonzero"></path>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,51 @@
+$common-color: #7dc0cc;
+
+html,
+body,
+#app {
+  margin: 0px;
+  padding: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: FangSong, STSong !important;
+}
+.dp-center {
+  display: flex;
+  justify-content: center;
+}
+.dp--center {
+  display: flex;
+  align-items: center;
+}
+.dp-center-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dp-space-center {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+//手型
+.icon-point {
+  cursor: pointer;
+}
+
+.single-to-long {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 2px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: $common-color;
+  border-radius: 100px;
+}

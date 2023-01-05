@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="94px" height="95px" viewBox="0 0 94 95" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组 6</title>
+    <defs>
+        <circle id="path-1" cx="33" cy="33" r="33"></circle>
+        <filter x="-34.1%" y="-26.5%" width="168.2%" height="168.2%" filterUnits="objectBoundingBox" id="filter-2">
+            <feMorphology radius="3.5" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="5" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4.5" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.0583205857 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="探索祠堂-地图模式备份" transform="translate(-23.000000, -35.000000)">
+            <g id="编组-4" transform="translate(37.000000, 43.750000)">
+                <g id="编组-6" transform="translate(0.000000, 1.000000)">
+                    <g id="椭圆形">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                        <circle stroke="#84B840" stroke-width="2" fill="#FFFFFF" fill-rule="evenodd" cx="33" cy="33" r="34"></circle>
+                    </g>
+                    <path d="M42.5833292,34.6296151 C42.5681965,34.644826 42.5473469,34.6486394 42.5322983,34.6630029 L27.4368542,51.3849206 C26.5250232,52.2849512 25.0552569,52.2954167 24.1558263,51.4068685 C23.2563537,50.5182778 23.2658116,49.0683227 24.1785254,48.1672752 L37.8419088,33.0317028 L24.1510763,17.8665134 C23.2393294,16.9655931 23.2383625,15.506952 24.1491847,14.6070061 C25.0609737,13.7079924 26.5383484,13.7089246 27.4510622,14.6089128 L42.5823624,31.3709552 C43.4941513,32.2709434 43.4950761,33.7305166 42.5832871,34.6295727 L42.5833292,34.6296151 Z" id="路径" fill="#87B940" transform="translate(33.366667, 33.000000) scale(-1, 1) translate(-33.366667, -33.000000) "></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
