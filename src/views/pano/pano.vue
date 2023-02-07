@@ -3,6 +3,11 @@ import { ElMessage } from "element-plus";
 import pano1Mp4 from "/source/pano1.mp4";
 import pano2Mp4 from "/source/pano2.mp4";
 import closeSvg from "@/assets/svg/close.svg";
+import cloudPng from "@/assets/img/cloud.png";
+import cloudTopPng from "@/assets/img/cloudTop.png";
+import cloudBottomPng from "@/assets/img/cloudBottom.png";
+import bridLeftGif from "@/assets/img/bridLeft.gif";
+import bridRightGif from "@/assets/img/bridRight.gif";
 import pointUpSvg from "@/assets/svg/pointUp.svg";
 import pointDownSvg from "@/assets/svg/pointDown.svg";
 import api from "@/services/api";
@@ -16,11 +21,13 @@ const panoSrc = ref<any>(null);
 const timer1 = ref<any>(null);
 const timer2 = ref<any>(null);
 const videoState = ref<boolean>(false);
-const firstState = ref<boolean>(false);
+const firstState = ref<boolean>(true);
 const videoTopRef = ref<any>(null);
 const videoTopSrc = ref<string>("");
 const videoBottomRef = ref<any>(null);
 const videoBottomSrc = ref<string>("");
+const videoBigTopRef = ref<any>(null);
+const videoBigBottomRef = ref<any>(null);
 const panoVisible = ref<boolean>(false);
 const panoUrl = ref<string>("");
 const closeVisible = ref<boolean>(false);
@@ -31,11 +38,8 @@ const choosePointIndex = ref<number>(0);
 onMounted(() => {
   panoWidth.value = document.documentElement.offsetWidth;
   panoHeight.value = document.documentElement.offsetHeight;
-  panoSrc.value = pano1Mp4;
   getPanoData();
-  timer1.value = setTimeout(() => {
-    firstState.value = true;
-  }, 5000);
+  // videoBigBottomRef.value.pause();
 });
 const getPanoData = async () => {
   const panoRes = (await api.request.get("hallPano/list")) as ResultProps;
@@ -74,11 +78,20 @@ onUnmounted(() => {
 //       changeVideo(pano6Mp4, pano7Mp4);
 //   }
 // };
+const playVideo = (ref, type) => {
+  if (type === "first") {
+    firstState.value = true;
+  } else {
+    videoState.value = true;
+    ref.play();
+  }
+};
 const changeVideo = (videoTop, videoBottom, name) => {
   closeVisible.value = true;
   videoState.value = false;
   videoTopSrc.value = videoTop;
   videoBottomSrc.value = videoBottom;
+  videoBottomRef.value.style.opacity = 0;
   pointSingleList.value = [];
   let index = pointList.value.findIndex((item) => item.name === name);
   console.log(index);
@@ -95,10 +108,8 @@ const changeVideo = (videoTop, videoBottom, name) => {
     videoBottomRef.value.pause();
   });
   timer1.value = setTimeout(() => {
-    videoState.value = true;
-    videoBottomRef.value.play();
-    choosePointIndex.value = 0;
-  }, 4950);
+    videoBottomRef.value.style.opacity = 1;
+  }, 4000);
 };
 const closePano = () => {
   closeVisible.value = false;
@@ -109,7 +120,9 @@ const closePano = () => {
   panoUrl.value = "";
 };
 watch(videoState, (newState) => {
+
   if (newState && pointSingleList.value.length > 0) {
+    choosePointIndex.value = 0;
     timer2.value = setInterval(() => {
       console.log(choosePointIndex.value);
       choosePointIndex.value = choosePointIndex.value + 1;
@@ -127,38 +140,45 @@ watch(videoState, (newState) => {
 <template>
   <cheader title="云游祠堂" routeName="/" />
   <div class="pano">
-    <video
+    <!-- <video
       :width="panoWidth"
       :height="panoHeight"
       :src="pano1Mp4"
       autoplay
+      ref="videoBigTopRef"
       class="pano-video-top"
       muted
+      @ended="playVideo('', 'first')"
       v-if="!firstState"
+    /> -->
+    <img :src="cloudPng" alt="" class="pano-cloud" />
+    <img
+      src="https://cdn-icare.qingtime.cn/pano_bg.png"
+      alt=""
+      class="pano-bg"
     />
-    <video
+    <!-- <video
       :width="panoWidth"
       :height="panoHeight"
       :src="pano2Mp4"
+      ref="videoBigBottomRef"
       autoplay
       loop
       class="pano-video"
       muted
-    />
-    <template v-if="firstState">
-      <div
-        class="pano-button-box"
-        @click="changeVideo(item.videoTop, item.videoBottom, item.name)"
-        v-for="(item, index) in hallList"
-        :key="'hall' + index"
-        :style="{
-          width: (item.width / pointWidth) * 100 + 'vw',
-          height: (item.height / pointHeight) * 100 + 'vh',
-          left: (item.left / pointWidth) * 100 + 'vw',
-          top: (item.top / pointHeight) * 100 + 'vh',
-        }"
-      ></div>
-    </template>
+    /> -->
+    <div
+      class="pano-button-box"
+      @click="changeVideo(item.videoTop, item.videoBottom, item.name)"
+      v-for="(item, index) in hallList"
+      :key="'hall' + index"
+      :style="{
+        width: (item.width / pointWidth) * 100 + 'vw',
+        height: (item.height / pointHeight) * 100 + 'vh',
+        left: (item.left / pointWidth) * 100 + 'vw',
+        top: (item.top / pointHeight) * 100 + 'vh',
+      }"
+    ></div>
   </div>
   <div class="pano-full-video" :style="{ zIndex: closeVisible ? 10 : -1 }">
     <video
@@ -167,21 +187,22 @@ watch(videoState, (newState) => {
       :src="videoTopSrc"
       class="pano-video-top"
       ref="videoTopRef"
+      autoplay
       muted
+      @ended="playVideo(videoBottomRef, 'second')"
       v-if="!videoState"
     />
     <video
       :width="panoWidth"
       :height="panoHeight"
       :src="videoBottomSrc"
-      autoplay
       class="pano-video-bottom"
       ref="videoBottomRef"
-      :style="{ opacity: videoState ? 1 : 0 }"
+      autoplay
       muted
       loop
-      @click="panoVisible = true"
     />
+
     <template v-if="videoState">
       <div
         class="pano-point-box"
@@ -193,7 +214,7 @@ watch(videoState, (newState) => {
         "
         :style="{
           width: (item.width / pointWidth) * 100 + 'vw',
-          height: (item.height / pointHeight) * 100 + 'vh',
+          height: `calc(${(item.height / pointHeight) * 100}vh + 2px)`,
           left: (item.left / pointWidth) * 100 + 'vw',
           top: (item.top / pointHeight) * 100 + 'vh',
         }"
@@ -208,6 +229,13 @@ watch(videoState, (newState) => {
   <div class="pano-close-button" @click="closePano()" v-if="closeVisible">
     <img :src="closeSvg" alt="" />
   </div>
+  <!-- <div class="pano-close-button" @click="closePano()" v-if="closeVisible">
+    <img :src="closeSvg" alt="" />
+  </div> -->
+  <img :src="bridLeftGif" alt="" class="pano-left-brid" />
+  <img :src="bridRightGif" alt="" class="pano-right-brid" />
+  <img :src="cloudTopPng" alt="" class="pano-top-cloud" />
+  <img :src="cloudBottomPng" alt="" class="pano-bottom-cloud" />
   <!-- <div
     class="pano-close-button"
     @click="
@@ -223,7 +251,13 @@ watch(videoState, (newState) => {
     <img :src="closeSvg" alt="" />
   </div> -->
   <div class="pano-video-pano" v-if="panoVisible">
-    <iframe :src="panoUrl" width="100%" height="100%" frameborder="no" />
+    <iframe
+      :src="panoUrl"
+      width="100%"
+      height="100%"
+      frameborder="no"
+      allowfullscreen="true"
+    />
   </div>
 </template>
 <style scoped lang="scss">
@@ -234,16 +268,21 @@ watch(videoState, (newState) => {
   left: 0px;
   top: 0px;
   z-index: 2;
-  .pano-video {
-    object-fit: fill;
+
+  .pano-bg {
+    width: 100vw;
+    height: 100vh;
   }
-  .pano-video-top {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    z-index: 2;
-    object-fit: fill;
-  }
+  // .pano-video {
+  //   object-fit: fill;
+  // }
+  // .pano-video-top {
+  //   position: absolute;
+  //   left: 0px;
+  //   top: 0px;
+  //   z-index: 2;
+  //   object-fit: fill;
+  // }
 
   .pano-left {
     left: 425px;
@@ -305,7 +344,7 @@ watch(videoState, (newState) => {
   position: fixed;
   top: 55px;
   right: 33px;
-  z-index: 25;
+  z-index: 250;
   cursor: pointer;
   img {
     width: 100%;
@@ -318,7 +357,7 @@ watch(videoState, (newState) => {
   position: fixed;
   top: 0px;
   left: 0px;
-  z-index: 20;
+  z-index: 100;
 }
 .pano-full-video {
   width: 100vw;
@@ -338,12 +377,65 @@ watch(videoState, (newState) => {
     width: 100vw;
     height: 100vh;
     object-fit: fill;
+    z-index: -1;
     cursor: pointer;
   }
 }
 .item-move {
   animation: move 2s;
   animation-fill-mode: forwards;
+}
+.pano-cloud {
+  width: 130vw;
+  height: 100vh;
+  position: fixed;
+  left: -30vw;
+  top: 0px;
+  z-index: 50;
+  animation: cloudmove linear 8s infinite;
+  pointer-events: none;
+}
+.pano-bottom-cloud {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  z-index: 52;
+  animation: cloudLeft linear 6s;
+  animation-fill-mode: forwards;
+  pointer-events: none;
+}
+.pano-top-cloud {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  right: 0px;
+  top: 0px;
+  z-index: 51;
+  animation: cloudRight linear 6s;
+  animation-fill-mode: forwards;
+  pointer-events: none;
+}
+.pano-left-brid {
+  width: 250px;
+  height: 250px;
+  position: fixed;
+  left: -2000px;
+  top: 50vh;
+  z-index: 52;
+  animation: birdLeft linear 12s infinite;
+  pointer-events: none;
+}
+.pano-right-brid {
+  width: 450px;
+  height: 450px;
+  position: fixed;
+  right: -700px;
+  top: 70vh;
+  z-index: 52;
+  animation: birdRight linear 12s infinite;
+  pointer-events: none;
 }
 </style>
 <style>
@@ -359,6 +451,63 @@ watch(videoState, (newState) => {
   100% {
     bottom: 0px;
     transform: scale(1);
+  }
+}
+@keyframes cloudmove {
+  0% {
+    left: -15vw;
+  }
+  50% {
+    left: -10vw;
+  }
+  100% {
+    left: -15vw;
+  }
+}
+@keyframes cloudLeft {
+  0% {
+    left: 0px;
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    left: -55vw;
+    opacity: 0;
+  }
+}
+@keyframes cloudRight {
+  0% {
+    right: 0px;
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    right: -55vw;
+    opacity: 0;
+  }
+}
+@keyframes birdLeft {
+  0% {
+    left: -2000px;
+    top: 40vh;
+  }
+  100% {
+    left: 90vw;
+    top: -300px;
+  }
+}
+@keyframes birdRight {
+  0% {
+    right: -700px;
+    top: 20vh;
+  }
+  100% {
+    right: 50vw;
+    top: -300px;
   }
 }
 </style>

@@ -7,36 +7,76 @@ import story2Svg from "@/assets/svg/story2.svg";
 import storyg2Svg from "@/assets/svg/storyg2.svg";
 import story3Svg from "@/assets/svg/story3.svg";
 import storyg3Svg from "@/assets/svg/storyg3.svg";
+import api from "@/services/api";
+import { ResultProps } from "@/interface/Common";
+import StoryDetail from "./storyDetail2.vue";
+interface storyInfo {
+  _key: string;
+  name: string;
+  tagKey: string;
+  link: string;
+}
+const storyList = ref<storyInfo[]>([]);
 const storyRef = ref<any>(null);
 const chooseIndex = ref<number>(0);
-const titleArray = [
-  [
-    "你知道“祠堂”有多少个名字吗？",
-    "祠堂文化的演变",
-    "祠堂，中国最早的众创空间",
-    // "祠堂，老百姓最早的SOSHOW场",
-    "祠堂，被误读了的信仰",
-  ],
-  [
-    "宗族、家族、家庭傻傻分不清",
-    "你知道“退休返聘”是古人的发明吗？",
-    "祠堂，宗族精神的产化物",
-    "祠堂，宗族和谐的象征",
-    "祖先崇拜≈个人崇拜？",
-  ],
-  [
-    "祠堂里的年味",
-    "祠堂中的非遗传承",
-    "祠堂，贫困家庭的救赎",
-    "祠堂，弘扬中华好家风",
-    "祠堂，寄托乡愁的载体",
-  ],
+const tagKey = ref<string>("");
+const tagLink = ref<string>("");
+const tagName = ref<string>("");
+const storyDetailVisible = ref<boolean>(false);
+
+const tagList = [
+  { _key: "1436574526", name: "祠堂新语" },
+  { _key: "1436575172", name: "祠堂与家族" },
+  { _key: "1436575366", name: "祠堂与家庭" },
 ];
+// const titleArray = [
+//   [
+//     "你知道“祠堂”有多少个名字吗？",
+//     "祠堂文化的演变",
+//     "祠堂，中国最早的众创空间",
+//     // "祠堂，老百姓最早的SOSHOW场",
+//     "祠堂，被误读了的信仰",
+//   ],
+//   [
+//     "宗族、家族、家庭傻傻分不清",
+//     "你知道“退休返聘”是古人的发明吗？",
+//     "祠堂，宗族精神的产化物",
+//     "祠堂，宗族和谐的象征",
+//     "祖先崇拜≈个人崇拜？",
+//   ],
+//   [
+//     "祠堂里的年味",
+//     "祠堂中的非遗传承",
+//     "祠堂，贫困家庭的救赎",
+//     "祠堂，弘扬中华好家风",
+//     "祠堂，寄托乡愁的载体",
+//   ],
+// ];
+onMounted(() => {
+  tagKey.value = tagList[0]._key;
+});
+const getData = async (key) => {
+  const dateRes = (await api.request.get("story/list", {
+    tagKey: key,
+  })) as ResultProps;
+  if (dateRes.msg === "OK") {
+    storyList.value = [...dateRes.data];
+  }
+};
 const wheelStory = (e) => {
   e.preventDefault();
   console.log("????");
   storyRef.value.scrollLeft += e.deltaY;
 };
+watch(
+  tagKey,
+  (newKey) => {
+    if (newKey) {
+      getData(newKey);
+    }
+  },
+  { immediate: true }
+);
 </script>
 <template>
   <div class="story" :style="{ backgroundImage: `url(${storyBgPng})` }">
@@ -44,7 +84,10 @@ const wheelStory = (e) => {
     <div class="story-nav">
       <div
         style="margin-right: 57px"
-        @click="chooseIndex = 0"
+        @click="
+          chooseIndex = 0;
+          tagKey = tagList[0]._key;
+        "
         :class="{
           'story-nav-choose': chooseIndex === 0,
           'story-nav-item': chooseIndex !== 0,
@@ -61,7 +104,10 @@ const wheelStory = (e) => {
       </div>
       <div
         style="margin-right: 57px"
-        @click="chooseIndex = 1"
+        @click="
+          chooseIndex = 1;
+          tagKey = tagList[1]._key;
+        "
         :class="{
           'story-nav-choose': chooseIndex === 1,
           'story-nav-item': chooseIndex !== 1,
@@ -73,7 +119,10 @@ const wheelStory = (e) => {
         <div class="nav-item-title">祠堂与家族</div>
       </div>
       <div
-        @click="chooseIndex = 2"
+        @click="
+          chooseIndex = 2;
+          tagKey = tagList[2]._key;
+        "
         :class="{
           'story-nav-choose': chooseIndex === 2,
           'story-nav-item': chooseIndex !== 2,
@@ -86,21 +135,33 @@ const wheelStory = (e) => {
       </div>
     </div>
     <div class="story-container" @wheel="wheelStory" ref="storyRef">
-      <div class="story-item" @click="$router.push('/storyDetail/1')" v-if="chooseIndex===0">
+      <!-- <div
+        class="story-item"
+        @click="$router.push('/storyDetail/1')"
+        v-if="chooseIndex === 0"
+      >
         <div class="story-item-icon"><img :src="mountainPng" alt="" /></div>
         <div class="story-item-text">祠堂里的共和国</div>
         <div class="story-item-button">查看详情</div>
-      </div>
+      </div> -->
       <div
         class="story-item"
-        v-for="(item, index) in titleArray[chooseIndex]"
+        v-for="(item, index) in storyList"
         :key="'story' + index"
+        @click="
+          tagLink = item.link;
+          tagName = item.name;
+          storyDetailVisible = true;
+        "
       >
         <div class="story-item-icon"><img :src="mountainPng" alt="" /></div>
-        <div class="story-item-text">{{ item }}</div>
+        <div class="story-item-text">{{ item.name }}</div>
         <div class="story-item-button">查看详情</div>
       </div>
     </div>
+  </div>
+  <div v-if="storyDetailVisible" class="story-detail-full">
+    <StoryDetail @close="storyDetailVisible = false" :name="tagName" :link="tagLink" />
   </div>
 </template>
 <style scoped lang="scss">
@@ -236,6 +297,14 @@ const wheelStory = (e) => {
       height: 0px;
     }
   }
+}
+.story-detail-full {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  z-index: 100;
 }
 </style>
 <style></style>

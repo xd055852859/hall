@@ -24,6 +24,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "hallDetail",
     component: () => import("@/views/hallDetail/hallDetail.vue"),
     children: [],
+    props: true,
   },
   {
     path: "/pano",
@@ -37,12 +38,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/story/story.vue"),
     children: [],
   },
-  {
-    path: "/storyDetail/:id",
-    name: "storyDetail",
-    component: () => import("@/views/story/storyDetail.vue"),
-    children: [],
-  },
+  // {
+  //   path: "/storyDetail/:id",
+  //   name: "storyDetail",
+  //   component: () => import("@/views/story/storyDetail.vue"),
+  //   children: [],
+  // },
 ];
 const routerHistory = createWebHashHistory();
 const router = createRouter({

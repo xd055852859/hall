@@ -5,8 +5,9 @@ import { defineStore } from "pinia";
 export const commonStore = defineStore("commonStore", () => {
   const deviceType = ref<string>("computer");
   const deviceWidth = ref<number>(0);
+  const deviceHeight = ref<number>(0);
   const deviceSize = ref<string>("md");
-  const musicSrc=ref<number>(0);
+  const musicSrc = ref<number>(0);
 
   const setDeviceType = (newDeviceType: string) => {
     deviceType.value = newDeviceType;
@@ -14,8 +15,9 @@ export const commonStore = defineStore("commonStore", () => {
   const setSrc = (newSrc: number) => {
     musicSrc.value = newSrc;
   };
-  const setDeviceWidth = (width: number) => {
+  const setDeviceWidth = (width: number, height: number) => {
     deviceWidth.value = width;
+    deviceHeight.value = height;
     if (width < 550) {
       deviceSize.value = "xs";
     } else if (550 <= width) {
@@ -33,6 +35,7 @@ export const commonStore = defineStore("commonStore", () => {
     deviceType,
     setDeviceType,
     deviceWidth,
+    deviceHeight,
     setDeviceWidth,
     deviceSize,
     musicSrc,

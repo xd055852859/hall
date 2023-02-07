@@ -4,6 +4,9 @@ import { Hall } from "@/interface/Hall";
 const props = defineProps<{
   list: Hall[];
 }>();
+const emits = defineEmits<{
+  (e: "chooseHall", key: string): void;
+}>();
 </script>
 <template>
   <div class="hall-image">
@@ -12,7 +15,7 @@ const props = defineProps<{
         class="hall-image-item"
         v-for="item in list"
         :key="item._key"
-        @click="$router.push(`/hallDetail/${item._key}`)"
+        @click="emits('chooseHall', item._key)"
       >
         <div class="hall-item-top">
           <!-- :style="{

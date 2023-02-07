@@ -15,10 +15,12 @@ import {
 
 import hallItem from "./hallItem.vue";
 import hallImage from "@/views/hallImage/hallImage.vue";
+import hallDetail from "@/views/hallDetail/hallDetail.vue";
 import { ElMessage } from "element-plus";
 import { storeToRefs } from "pinia";
 import appStore from "@/store";
 import router from "@/router";
+
 const { hallList } = storeToRefs(appStore.hallStore);
 const { getHallData, setSearchHallList } = appStore.hallStore;
 const province = ref<string>("");
@@ -47,7 +49,8 @@ const chooseNameIndex = ref<number>(-1);
 const chooseProvinceIndex = ref<number>(-1);
 const chooseCityIndex = ref<number>(-1);
 const mapRef = ref<any>(null);
-
+const hallDetailVisible = ref<boolean>(false);
+const hallDetailKey = ref<string>("");
 onMounted(() => {
   if (hallList.value.length === 0) {
     getHallData();
@@ -215,12 +218,17 @@ const setMapValue = (parmas: { type: string; value: string }) => {
       city.value = parmas.value;
       break;
     case "single":
-      router.push(`/hallDetail/${parmas.value}`);
+      chooseHall(parmas.value);
+      // router.push(`/hallDetail/${parmas.value}`);
       break;
     case "type":
       zoomType.value = parmas.value;
       break;
   }
+};
+const chooseHall = (key) => {
+  hallDetailVisible.value = true;
+  hallDetailKey.value = key;
 };
 const clearName = () => {
   surname.value = "";
@@ -264,7 +272,7 @@ watch([province, city, surname], ([newProvince, newCity, newSurname]) => {
 // });
 watch([province, city, surname], ([newProvince, newCity, newName]) => {
   if (!newProvince && !newCity && !newName) {
-    searchList.value = [...hallList.value];
+    searchList.value = [...hallList.value].slice(0, 30);
   }
   getAddress(newProvince, newCity, newName);
 });
@@ -291,7 +299,7 @@ watch(
   hallList,
   (newList) => {
     if (newList.length > 0) {
-      searchList.value = [...newList];
+      searchList.value = [...newList].slice(0, 30);
     }
   },
   { immediate: true }
@@ -335,10 +343,7 @@ watch(showState, () => {
           }" -->
         <div
           class="hall-left-search"
-          :style="{
-            height:
-              nameVisible || provinceVisible ? 'calc(100% - 50px)' : '110px',
-          }"
+          :class="{ 'hall-left-search-show': nameVisible || provinceVisible }"
         >
           <div
             class="hall-search-nav"
@@ -550,7 +555,11 @@ watch(showState, () => {
         ref="mapRef"
         v-if="addressList.length > 0"
       />
-      <hallImage :list="searchList" v-if="showState === 'image'" />
+      <hallImage
+        :list="searchList"
+        v-if="showState === 'image'"
+        @chooseHall="chooseHall"
+      />
     </div>
     <div
       class="hall-message-box"
@@ -567,6 +576,9 @@ watch(showState, () => {
     >
       <img :src="toImgSvg" alt="" />
     </div>
+  </div>
+  <div v-if="hallDetailVisible" class="hall-detail-full">
+    <hallDetail @close="hallDetailVisible = false" :id="hallDetailKey" />
   </div>
 </template>
 <style scoped lang="scss">
@@ -622,7 +634,9 @@ watch(showState, () => {
         box-sizing: border-box;
         position: relative;
         z-index: 1;
+        height: 150px;
         cursor: pointer;
+
         .hall-search-nav {
           width: 100%;
           height: 60px;
@@ -750,6 +764,9 @@ watch(showState, () => {
             }
           }
         }
+      }
+      .hall-left-search-show {
+        height: calc(100% - 50px);
       }
       .hall-box {
         width: 100%;
@@ -899,6 +916,14 @@ watch(showState, () => {
       height: 100%;
     }
   }
+}
+.hall-detail-full {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  z-index: 100;
 }
 </style>
 <style lang="scss">

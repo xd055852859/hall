@@ -71,7 +71,7 @@ export const uploadFile = async (
   );
   if (uploadRes.msg === "OK") {
     let uptoken = uploadRes.result;
-    const domain = "https://cnd-yyhall.qingtime.cn/";
+    const domain = "https://cdn-yyhall.qingtime.cn/";
     let putExtra = {
       // 文件原文件名
       fname: "",
@@ -104,7 +104,7 @@ export const uploadFile = async (
       fileType
         ? new Date().getTime() + "_hall." + fileType
         : new Date().getTime() +
-            "_diary" +
+            "_hall" +
             (file.name ? file.name.substr(file.name.lastIndexOf(".")) : ".png"),
       uptoken,
       putExtra,

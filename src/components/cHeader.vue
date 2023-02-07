@@ -3,7 +3,11 @@ import { ElMessage } from "element-plus";
 import leftArrowSvg from "@/assets/svg/leftArrow.svg";
 const props = defineProps<{
   title: string;
-  routeName?:string
+  routeName?: string;
+  clickState?: boolean;
+}>();
+const emits = defineEmits<{
+  (e: "clickBack"): void;
 }>();
 </script>
 <template>
@@ -12,7 +16,13 @@ const props = defineProps<{
       class="common-header-img"
       :src="leftArrowSvg"
       alt=""
-      @click="routeName?$router.push(routeName):$router.back()"
+      @click="
+        clickState
+          ? emits('clickBack')
+          : routeName
+          ? $router.push(routeName)
+          : $router.back()
+      "
     />
     <div class="common-header-title">{{ title }}</div>
   </div>

@@ -19,6 +19,7 @@
     "axios": "^1.2.0",
     "element-plus": "^2.2.25",
     "flipbook-vue": "^1.0.0-beta.2",
+    "jquery": "^3.6.3",
     "pinia": "^2.0.27",
     "postcss-pxtorem": "^6.0.0",
     "qiniu-js": "^3.4.1",
