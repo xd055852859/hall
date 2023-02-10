@@ -45,8 +45,8 @@ const emits = defineEmits<{
   right: 0px;
   z-index: 4;
   background-color: #ffffff;
-  padding: 25px 0px;
   box-sizing: border-box;
+  padding-left: 28vw;
   .hall-image-container {
     width: 100%;
     height: 100%;
@@ -56,7 +56,7 @@ const emits = defineEmits<{
     @include flex(flex-start, center, wrap);
     @include scroll();
     .hall-image-item {
-      width: 430px;
+      width: 420px;
       height: 447px;
       margin-right: 28px;
       background: rgba(255, 255, 255, 0.6);
@@ -90,7 +90,7 @@ const emits = defineEmits<{
           margin-bottom: 10px;
         }
         .hall-item-subtitle {
-          width: 120px;
+          width: 100%;
           height: 28px;
           font-size: 20px;
           color: #666666;

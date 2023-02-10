@@ -176,3 +176,17 @@ export const loadFont = async (fontName, fontUrl) => {
   //@ts-ignore
   document.fonts.add(font);
 };
+
+export const useImageUrl = (
+  folder: string = "",
+  name: string,
+  type: string = "png"
+): string => {
+  /**
+   * @method vite动态引入图片
+   * @params folder 文件夹名称 name 文件名称 type 文件格式 一般为png/jpg/webp/gif等...
+   * @returns 图片
+   */
+  //useImageUrl('home', 'banner1', 'png')
+  return new URL(`../assets/${folder}/${name}.${type}`, import.meta.url).href;
+};

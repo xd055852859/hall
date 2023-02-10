@@ -30,7 +30,7 @@ onUnmounted(() => {
       <img :src="homeNavPng" alt="" class="home-nav-bg" />
       <div class="home-button home-button1" @click="$router.push('/hall')">
         <img :src="homeButton1Svg" alt="" class="home-button-img" />
-        <div class="home-button-text">华夏祠堂</div>
+        <div class="home-button-text">探索祠堂</div>
       </div>
       <div class="home-button home-button2" @click="$router.push('/pano')">
         <img :src="homeButton2Svg" alt="" class="home-button-img" />

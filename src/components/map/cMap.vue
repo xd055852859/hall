@@ -126,7 +126,7 @@ const initMap = (newData) => {
         console.log(newData);
         setMarkers(newData);
         // amap.value.setFitView();
-        amap.value.panTo([105, 38.5]);
+        amap.value.panTo([95, 38.5]);
         // originZoom.value=amap.value.getZoom()
         // amap.value.setZoom(amap.value.getZoom() + 0.4);
         amap.value.on("zoomchange", mapZoom);

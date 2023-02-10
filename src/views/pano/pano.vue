@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { ElMessage } from "element-plus";
-import pano1Mp4 from "/source/pano1.mp4";
-import pano2Mp4 from "/source/pano2.mp4";
 import closeSvg from "@/assets/svg/close.svg";
 import cloudPng from "@/assets/img/cloud.png";
 import cloudTopPng from "@/assets/img/cloudTop.png";
@@ -17,7 +14,7 @@ const panoWidth = ref<number>(0);
 const panoHeight = ref<number>(0);
 const pointWidth = ref<number>(0);
 const pointHeight = ref<number>(0);
-const panoSrc = ref<any>(null);
+
 const timer1 = ref<any>(null);
 const timer2 = ref<any>(null);
 const videoState = ref<boolean>(false);
@@ -26,8 +23,6 @@ const videoTopRef = ref<any>(null);
 const videoTopSrc = ref<string>("");
 const videoBottomRef = ref<any>(null);
 const videoBottomSrc = ref<string>("");
-const videoBigTopRef = ref<any>(null);
-const videoBigBottomRef = ref<any>(null);
 const panoVisible = ref<boolean>(false);
 const panoUrl = ref<string>("");
 const closeVisible = ref<boolean>(false);
@@ -378,7 +373,7 @@ watch(videoState, (newState) => {
     height: 100vh;
     object-fit: fill;
     z-index: -1;
-    cursor: pointer;
+    // cursor: pointer;
   }
 }
 .item-move {

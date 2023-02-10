@@ -9,7 +9,6 @@
 import jQuery from "jquery";
 export default (function ($) {
   "use strict";
-  console.log("???????");
   var has3d,
     hasRot,
     vendor = "",

@@ -14,6 +14,7 @@ export interface Hall {
   province?: string;
   updateTime?: number;
   viewCount?: number;
+  category?: string;
 }
 export interface HallDetail extends Hall {
   creator: string;
